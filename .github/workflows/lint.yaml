@@ -35,13 +35,6 @@ jobs:
         with:
           version: nightly
 
-      - name: Prepare foundry keystore
-        run: |
-          mkdir -p ~/.foundry/keystores
-          cast wallet import --private-key 0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6 \
-            --unsafe-password 'localhost' scaffold-eth-default
-        shell: bash
-
       - name: Install Forge dependencies
         working-directory: packages/foundry
         run: forge install foundry-rs/forge-std
@@ -49,7 +42,22 @@ jobs:
       - name: Run foundry node, deploy contracts (& generate contracts typescript output)
         env:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
-        run: yarn chain & yarn deploy
+        run: |
+          # start chain in background - redirect logs to file
+          yarn chain > chain.log 2>&1 &
+          # wait for RPC endpoint to be ready (30s timeout)
+          for i in $(seq 1 30); do
+            if curl --silent --fail http://127.0.0.1:8545 >/dev/null 2>&1; then
+              echo "RPC ready"
+              break
+            fi
+            echo "Waiting for RPC to be ready ($i/30)..."
+            sleep 1
+          done
+          # show startup logs for debugging
+          tail -n +1 chain.log | sed -n '1,200p'
+          # run deploy once RPC is up
+          yarn deploy
 
       - name: Run nextjs lint
         run: yarn next:lint --max-warnings=0
