@@ -30,6 +30,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "The New York Yankees will win the 2009 world series.",
             5 days,
+            "category",
             2 ether
         );
         assertEq(marketId, 1);
@@ -65,6 +66,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "The New York Yankees will win the 2009 world series.",
             5 days,
+            "category",
             2 ether
         );
         vm.startPrank(alice);
@@ -89,6 +91,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "The New York Yankees will win the 2009 world series.",
             5 days,
+            "category",
             2 ether
         );
         vm.startPrank(alice);
@@ -113,7 +116,12 @@ contract PredictionMarketTest is Test {
     }
 
     function testRevertBuyInsufficientPayment() public {
-        uint256 marketId = market.createMarket("Q", 1 days, 1 ether);
+        uint256 marketId = market.createMarket(
+            "Q",
+            1 days,
+            "category",
+            1 ether
+        );
 
         vm.startPrank(bob);
         vm.expectRevert(
@@ -130,7 +138,12 @@ contract PredictionMarketTest is Test {
     // -------------------------
 
     function testSellYes() public {
-        uint256 marketId = market.createMarket("Q", 1 days, 1 ether);
+        uint256 marketId = market.createMarket(
+            "Q",
+            1 days,
+            "category",
+            1 ether
+        );
         vm.startPrank(alice);
         market.buy{value: 2 ether}(marketId, true, 2 ether);
 
@@ -150,7 +163,12 @@ contract PredictionMarketTest is Test {
     }
 
     function testSellNo() public {
-        uint256 marketId = market.createMarket("Q", 1 days, 1 ether);
+        uint256 marketId = market.createMarket(
+            "Q",
+            1 days,
+            "category",
+            1 ether
+        );
         vm.startPrank(alice);
         market.buy{value: 2 ether}(marketId, false, 2 ether);
 
@@ -170,7 +188,12 @@ contract PredictionMarketTest is Test {
     }
 
     function testSellRevertsIfNotEnoughShares() public {
-        uint256 marketId = market.createMarket("Q", 1 days, 1 ether);
+        uint256 marketId = market.createMarket(
+            "Q",
+            1 days,
+            "category",
+            1 ether
+        );
         vm.startPrank(alice);
         market.buy{value: 2 ether}(marketId, true, 2 ether);
         vm.expectRevert("Insufficient YES shares");
@@ -178,7 +201,12 @@ contract PredictionMarketTest is Test {
     }
 
     function testSellItResetsLastSideIfNoShares() public {
-        uint256 marketId = market.createMarket("Q", 1 days, 1 ether);
+        uint256 marketId = market.createMarket(
+            "Q",
+            1 days,
+            "category",
+            1 ether
+        );
         vm.startPrank(alice);
         market.buy{value: 2 ether}(marketId, true, 2 ether);
         PredictionMarket.Prediction memory prediction = market.getPrediction(
@@ -199,7 +227,12 @@ contract PredictionMarketTest is Test {
     }
 
     function testBuyRevertsIfMarketIsClosed() public {
-        uint256 marketId = market.createMarket("Q", 1 days, 1 ether);
+        uint256 marketId = market.createMarket(
+            "Q",
+            1 days,
+            "category",
+            1 ether
+        );
         uint256 newTimeStamp = block.timestamp + 1 days + 5 minutes;
         vm.warp(newTimeStamp);
         vm.startPrank(alice);
@@ -219,7 +252,12 @@ contract PredictionMarketTest is Test {
     }
 
     function testSellRevertsIfNoShares() public {
-        uint256 marketId = market.createMarket("Q", 1 days, 1 ether);
+        uint256 marketId = market.createMarket(
+            "Q",
+            1 days,
+            "category",
+            1 ether
+        );
         vm.startPrank(alice);
 
         vm.expectRevert("Insufficient NO shares");
@@ -231,7 +269,12 @@ contract PredictionMarketTest is Test {
     // ================================================================
 
     function testSettlementRequest() public {
-        uint256 marketId = market.createMarket("Q", 1 days, 1 ether);
+        uint256 marketId = market.createMarket(
+            "Q",
+            1 days,
+            "category",
+            1 ether
+        );
         uint256 newTimeStamp = block.timestamp + 1 days + 5 minutes;
         vm.warp(newTimeStamp);
         vm.prank(alice);
@@ -242,7 +285,12 @@ contract PredictionMarketTest is Test {
     }
 
     function testRequestSettlementRevertsIfMarketIsOpen() public {
-        uint256 marketId = market.createMarket("Q", 1 days, 1 ether);
+        uint256 marketId = market.createMarket(
+            "Q",
+            1 days,
+            "category",
+            1 ether
+        );
         (, , uint256 close, , , , , , , ) = _readMarket(marketId);
         vm.startPrank(alice);
         vm.expectRevert(
@@ -256,7 +304,12 @@ contract PredictionMarketTest is Test {
     }
 
     function testRequestSettlementRevertsIfStatusNotOpen() public {
-        uint256 marketId = market.createMarket("Q", 1 days, 1 ether);
+        uint256 marketId = market.createMarket(
+            "Q",
+            1 days,
+            "category",
+            1 ether
+        );
         uint256 newTimeStamp = block.timestamp + 1 days + 5 minutes;
         vm.warp(newTimeStamp);
 
@@ -316,7 +369,12 @@ contract PredictionMarketTest is Test {
     }
 
     function testTradeRevertsIfMarketIsSettled() public {
-        uint256 marketId = market.createMarket("Q", 1 days, 1 ether);
+        uint256 marketId = market.createMarket(
+            "Q",
+            1 days,
+            "category",
+            3 ether
+        );
         uint256 newTimeStamp = block.timestamp + 1 days + 5 minutes;
         vm.warp(newTimeStamp);
         vm.startPrank(alice);
@@ -388,7 +446,12 @@ contract PredictionMarketTest is Test {
     //                         CLAIMS & PAYOUTS
     // ================================================================
     function testClaimWithProfit() public {
-        uint256 marketId = market.createMarket("Q", 1 days, 3 ether);
+        uint256 marketId = market.createMarket(
+            "Q",
+            1 days,
+            "category",
+            3 ether
+        );
 
         //Alice bets 2 ether on YES
         vm.prank(alice);
@@ -423,7 +486,12 @@ contract PredictionMarketTest is Test {
     }
 
     function testClaimWithProfitMultipleBets() public {
-        uint256 marketId = market.createMarket("Q", 1 days, 3 ether);
+        uint256 marketId = market.createMarket(
+            "Q",
+            1 days,
+            "category",
+            3 ether
+        );
 
         //Alice bets 2 ether on YES
         vm.prank(alice);
@@ -464,7 +532,12 @@ contract PredictionMarketTest is Test {
     }
 
     function testClaimWhenLoosingPoolIsZero() public {
-        uint256 marketId = market.createMarket("Q", 1 days, 3 ether);
+        uint256 marketId = market.createMarket(
+            "Q",
+            1 days,
+            "category",
+            3 ether
+        );
 
         //Alice bets 2 ether on YES
         vm.prank(alice);
@@ -492,7 +565,12 @@ contract PredictionMarketTest is Test {
     }
 
     function testLoosersCannotClaim() public {
-        uint256 marketId = market.createMarket("Q", 1 days, 3 ether);
+        uint256 marketId = market.createMarket(
+            "Q",
+            1 days,
+            "category",
+            3 ether
+        );
 
         //Alice bets 2 ether on YES
         vm.prank(alice);
@@ -519,7 +597,12 @@ contract PredictionMarketTest is Test {
     }
 
     function testCannotClaimTwice() public {
-        uint256 marketId = market.createMarket("Q", 1 days, 3 ether);
+        uint256 marketId = market.createMarket(
+            "Q",
+            1 days,
+            "category",
+            3 ether
+        );
         vm.prank(alice);
         market.buy{value: 2 ether}(marketId, true, 2 ether);
 
@@ -546,7 +629,12 @@ contract PredictionMarketTest is Test {
     }
 
     function testCannotClaimWhenBeforeSettlement() public {
-        uint256 marketId = market.createMarket("Q", 1 days, 3 ether);
+        uint256 marketId = market.createMarket(
+            "Q",
+            1 days,
+            "category",
+            3 ether
+        );
         vm.prank(alice);
         market.buy{value: 2 ether}(marketId, true, 2 ether);
         (, , , uint8 status, , , , , , ) = _readMarket(marketId);
@@ -600,7 +688,7 @@ contract PredictionMarketTest is Test {
     function _prepareAndRequestSettlement(
         string memory question
     ) internal returns (uint256 id) {
-        id = market.createMarket(question, 1 days, 1 ether);
+        id = market.createMarket(question, 1 days, "category", 1 ether);
         vm.warp(block.timestamp + 1 days + 5 minutes);
         market.requestSettlement(id);
     }

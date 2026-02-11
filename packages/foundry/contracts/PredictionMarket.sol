@@ -91,6 +91,7 @@ contract PredictionMarket is ReceiverTemplate {
         string question; // Market question (e.g. "The New York Yankees will win the 2009 world series.")
         uint256 marketOpen; // Timestamp when the market opened
         uint256 marketClose; // Timestamp when the market closes for predictions
+        bytes32 category;
         Outcome outcome;
         Status status; // Final outcome of the market
         uint256 settledAt; // Timestamp when settlement occurred
@@ -133,12 +134,14 @@ contract PredictionMarket is ReceiverTemplate {
     function createMarket(
         string calldata _question,
         uint256 _duration,
+        bytes32 _category,
         uint256 _liquidity
     ) external returns (uint256) {
         marketCount++;
         Market storage m = markets[marketCount];
 
         m.question = _question;
+        m.category = _category;
         m.marketOpen = block.timestamp;
         m.marketClose = block.timestamp + _duration;
         m.liquidity = _liquidity;
