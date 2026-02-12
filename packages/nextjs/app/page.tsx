@@ -1,79 +1,117 @@
 "use client";
 
 import Link from "next/link";
-import { Address } from "@scaffold-ui/components";
+import { ArrowRight, BarChart3, Shield, TrendingUp, Zap } from "lucide-react";
+//import { Address } from "@scaffold-ui/components";
 import type { NextPage } from "next";
-import { hardhat } from "viem/chains";
-import { useAccount } from "wagmi";
-import { BugAntIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { useTargetNetwork } from "~~/hooks/scaffold-eth";
+import MarketCard from "~~/components/MarketCard";
+import { MOCK_MARKETS, formatVolume } from "~~/lib/markets";
+
+//import { hardhat } from "viem/chains";
+//import { useAccount } from "wagmi";
+//import { BugAntIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+//import { useTargetNetwork } from "~~/hooks/scaffold-eth";
 
 const Home: NextPage = () => {
-  const { address: connectedAddress } = useAccount();
-  const { targetNetwork } = useTargetNetwork();
-
+  const trendingMarkets = MOCK_MARKETS.filter(m => m.trending && !m.resolved).slice(0, 3);
+  const totalVolume = MOCK_MARKETS.reduce((s, m) => s + m.volume, 0);
   return (
     <>
-      <div className="flex items-center flex-col grow pt-10">
-        <div className="px-5">
-          <h1 className="text-center">
-            <span className="block text-2xl mb-2">Welcome to</span>
-            <span className="block text-4xl font-bold">Scaffold-ETH 2</span>
-          </h1>
-          <div className="flex justify-center items-center space-x-2 flex-col">
-            <p className="my-2 font-medium">Connected Address:</p>
-            <Address
-              address={connectedAddress}
-              chain={targetNetwork}
-              blockExplorerAddressLink={
-                targetNetwork.id === hardhat.id ? `/blockexplorer/address/${connectedAddress}` : undefined
-              }
-            />
-          </div>
-
-          <p className="text-center text-lg">
-            Get started by editing{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              packages/nextjs/app/page.tsx
-            </code>
-          </p>
-          <p className="text-center text-lg">
-            Edit your smart contract{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              YourContract.sol
-            </code>{" "}
-            in{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              packages/hardhat/contracts
-            </code>
-          </p>
-        </div>
-
-        <div className="grow bg-base-300 w-full mt-16 px-8 py-12">
-          <div className="flex justify-center items-center gap-12 flex-col md:flex-row">
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <BugAntIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Tinker with your smart contract using the{" "}
-                <Link href="/debug" passHref className="link">
-                  Debug Contracts
-                </Link>{" "}
-                tab.
-              </p>
+      {/* Hero */}
+      <section className="relative overflow-hidden md:px-[10.5rem] border-b border-border">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/9 via-transparent to-transparent" />
+        <div className="container flex relative  py-20 md:py-28">
+          <div className="max-w-2xl space-y-6">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm text-primary">
+              <Zap className="h-3.5 w-3.5" />
+              Live prediction markets
             </div>
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <MagnifyingGlassIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Explore your local transactions with the{" "}
-                <Link href="/blockexplorer" passHref className="link">
-                  Block Explorer
-                </Link>{" "}
-                tab.
-              </p>
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.1]">
+              Trade on the outcome of <span className="text-primary">real-world events</span>
+            </h1>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Buy and sell shares in prediction markets. Profit from your knowledge of politics, crypto, sports, and
+              more.
+            </p>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/markets"
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:brightness-110 transition-all"
+              >
+                Explore Markets
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/portfolio"
+                className="inline-flex items-center gap-2 rounded-lg bg-secondary px-5 py-3 text-sm font-semibold text-secondary-foreground hover:bg-accent transition-colors"
+              >
+                View Portfolio
+              </Link>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+      {/* Stats */}
+      <section className="border-b border-border">
+        <div className="container grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
+          {[
+            { label: "Total Volume", value: formatVolume(totalVolume) },
+            { label: "Active Markets", value: MOCK_MARKETS.filter(m => !m.resolved).length.toString() },
+            { label: "Resolved", value: MOCK_MARKETS.filter(m => m.resolved).length.toString() },
+            { label: "Categories", value: "7" },
+          ].map(stat => (
+            <div key={stat.label} className="py-6 px-4 text-center">
+              <div className="stat-value">{stat.value}</div>
+              <div className="stat-label mt-1">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+      {/* Trending */}
+      <section className="container py-12">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-bold">Trending Markets</h2>
+          </div>
+          <Link href="/markets" className="text-sm text-primary hover:underline flex items-center gap-1">
+            View all <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+        <div className="grid md:grid-cols-3 gap-4">
+          {trendingMarkets.map(market => (
+            <MarketCard key={market.id} market={market} />
+          ))}
+        </div>
+      </section>
+      {/* Features */}
+      <section className="container pb-16">
+        <div className="grid md:grid-cols-3 gap-4">
+          {[
+            {
+              icon: BarChart3,
+              title: "Real-time Markets",
+              desc: "Trade on hundreds of events with live pricing and deep liquidity.",
+            },
+            {
+              icon: Shield,
+              title: "Transparent Resolution",
+              desc: "Markets resolve based on verifiable outcomes. Every resolution is auditable.",
+            },
+            {
+              icon: TrendingUp,
+              title: "Profit from Knowledge",
+              desc: "If you know better than the crowd, you profit. Simple as that.",
+            },
+          ].map(f => (
+            <div key={f.title} className="glass-card p-6">
+              <f.icon className="h-8 w-8 text-primary mb-3" />
+              <h3 className="font-semibold mb-1">{f.title}</h3>
+              <p className="text-sm text-muted-foreground">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
     </>
   );
 };

@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 
 import "./DeployHelpers.s.sol";
 //import "../contracts/YourContract.sol";
+import {PredictionMarket} from "../contracts/PredictionMarket.sol";
 
 /**
  * @notice Deploy script for YourContract contract
@@ -26,5 +27,6 @@ contract DeployYourContract is ScaffoldETHDeploy {
      */
     function run() external ScaffoldEthDeployerRunner {
         //new YourContract(deployer);
+        new PredictionMarket(0x15fC6ae953E024d975e77382eEeC56A9101f9F88);
     }
 }

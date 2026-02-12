@@ -1,123 +1,120 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
-
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 @theme {
-  --shadow-center: 0 0 12px -2px rgb(0 0 0 / 0.05);
-  --animate-pulse-fast: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  /* Fonts */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Theme Colors - Mapped to OKLCH variables */
+  --color-background: oklch(var(--background));
+  --color-foreground: oklch(var(--foreground));
+  --color-card: oklch(var(--card));
+  --color-card-foreground: oklch(var(--card-foreground));
+  --color-popover: oklch(var(--popover));
+  --color-popover-foreground: oklch(var(--popover-foreground));
+  --color-primary: oklch(var(--primary));
+  --color-primary-foreground: oklch(var(--primary-foreground));
+  --color-secondary: oklch(var(--secondary));
+  --color-secondary-foreground: oklch(var(--secondary-foreground));
+  --color-muted: oklch(var(--muted));
+  --color-muted-foreground: oklch(var(--muted-foreground));
+  --color-accent: oklch(var(--accent));
+  --color-accent-foreground: oklch(var(--accent-foreground));
+  --color-destructive: oklch(var(--destructive));
+  --color-destructive-foreground: oklch(var(--destructive-foreground));
+  --color-border: oklch(var(--border));
+  --color-input: oklch(var(--input));
+  --color-ring: oklch(var(--ring));
+
+  /* Prediction Market Specific */
+  --color-yes: oklch(var(--yes));
+  --color-no: oklch(var(--no));
+  --color-text-tertiary: oklch(var(--text-tertiary));
+  --color-surface-hover: oklch(var(--surface-hover));
+
+  /* Radii */
+  --radius-lg: var(--radius);
+
+  /* v4 Custom Utilities: This allows @apply glass-card to work */
+  --utility-glass-card: {
+    background-color: oklch(var(--card));
+    border: 1px solid oklch(var(--border));
+    border-radius: var(--radius);
+  };
 }
 
-@plugin "daisyui" {
-  themes:
-    light,
-    dark --prefersdark;
+:root {
+  /* OKLCH values: [Lightness] [Chroma] [Hue] */
+  /* Deeper Backgrounds */
+  --background: 0.12 0.02 260; /* Darker, midnight blue-black */
+  --foreground: 0.98 0.01 260; /* Crisp white-blue text */
+  --card: 0.16 0.02 260; /* Slightly lighter than background */
+  --card-foreground: 0.98 0.01 260;
+  --popover: 0.24 0.015 260;
+  --popover-foreground: 0.95 0.005 260;
+  --primary: 0.72 0.22 160; /* Higher Chroma (0.22) makes it "pop" */
+  --primary-foreground: 0.1 0.02 260;
+  --secondary: 0.22 0.03 260;
+  --secondary-foreground: 0.92 0.02 260;
+  --muted: 0.25 0.02 260;
+  --muted-foreground: 0.68 0.03 260;
+  --accent: 0.28 0.04 260;
+  --accent-foreground: 0.92 0.01 260;
+  --destructive: 0.62 0.22 25;
+  --destructive-foreground: 0.98 0.005 260;
+  --border: 0.22 0.03 260;
+  --input: 0.32 0.015 260;
+  --ring: 0.78 0.18 160;
+  --radius: 0.5rem;
+
+  --yes: 0.72 0.22 160; /* Vibrant Emerald */
+  --no: 0.6 0.25 28;
+  --text-tertiary: 0.55 0.02 260;
+  --surface-hover: 0.2 0.04 260;
 }
 
-@plugin "daisyui/theme" {
-  name: "light";
-
-  --color-primary: #93bbfb;
-  --color-primary-content: #212638;
-  --color-secondary: #dae8ff;
-  --color-secondary-content: #212638;
-  --color-accent: #93bbfb;
-  --color-accent-content: #212638;
-  --color-neutral: #212638;
-  --color-neutral-content: #ffffff;
-  --color-base-100: #ffffff;
-  --color-base-200: #f4f8ff;
-  --color-base-300: #dae8ff;
-  --color-base-content: #212638;
-  --color-info: #93bbfb;
-  --color-success: #34eeb6;
-  --color-warning: #ffcf72;
-  --color-error: #ff8863;
-
-  --radius-field: 9999rem;
-  --radius-box: 1rem;
-  --tt-tailw: 6px;
+/* 1. Register 'glass-card' as an official Tailwind Utility */
+@utility glass-card {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
 }
 
-@plugin "daisyui/theme" {
-  name: "dark";
-
-  --color-primary: #212638;
-  --color-primary-content: #f9fbff;
-  --color-secondary: #323f61;
-  --color-secondary-content: #f9fbff;
-  --color-accent: #4969a6;
-  --color-accent-content: #f9fbff;
-  --color-neutral: #f9fbff;
-  --color-neutral-content: #385183;
-  --color-base-100: #385183;
-  --color-base-200: #2a3655;
-  --color-base-300: #212638;
-  --color-base-content: #f9fbff;
-  --color-info: #385183;
-  --color-success: #34eeb6;
-  --color-warning: #ffcf72;
-  --color-error: #ff8863;
-
-  --radius-field: 9999rem;
-  --radius-box: 1rem;
-
-  --tt-tailw: 6px;
-  --tt-bg: var(--color-primary);
+@utility container {
+  margin-inline: auto; /* Centers the container (mx-auto) */
+  padding-inline: 1.5rem; /* Default mobile padding (px-4) */
 }
 
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
 @layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+  * {
+    @apply border-border;
   }
-
-  p {
-    margin: 1rem 0;
-  }
-
   body {
-    min-height: 100vh;
-  }
-
-  h1,
-  h2,
-  h3,
-  h4 {
-    margin-bottom: 0.5rem;
-    line-height: 1;
+    @apply bg-background text-foreground font-sans antialiased;
   }
 }
 
-:root,
-[data-theme] {
-  background: var(--color-base-200);
-}
+@layer components {
+  /* Now @apply glass-card will work because it's a registered utility */
+  .glass-card-hover {
+    @apply glass-card transition-all duration-200 hover:bg-surface-hover;
+  }
 
-.btn {
-  @apply shadow-md;
-}
+  .yes-pill {
+    @apply bg-primary/15 text-primary font-semibold px-3 py-1 rounded-full text-sm;
+  }
 
-.btn.btn-ghost {
-  @apply shadow-none;
-}
+  .no-pill {
+    @apply bg-no/15 text-no font-semibold px-3 py-1 rounded-full text-sm;
+  }
 
-.link {
-  text-underline-offset: 2px;
-}
+  .stat-value {
+    @apply font-mono text-2xl font-semibold tracking-tight;
+  }
 
-.link:hover {
-  opacity: 80%;
+  .stat-label {
+    @apply text-sm text-muted-foreground;
+  }
 }
