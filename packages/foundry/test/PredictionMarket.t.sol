@@ -30,7 +30,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "The New York Yankees will win the 2009 world series.",
             5 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             2 ether
         );
         assertEq(marketId, 1);
@@ -66,7 +66,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "The New York Yankees will win the 2009 world series.",
             5 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             2 ether
         );
         vm.startPrank(alice);
@@ -91,7 +91,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "The New York Yankees will win the 2009 world series.",
             5 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             2 ether
         );
         vm.startPrank(alice);
@@ -119,7 +119,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "Q",
             1 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             1 ether
         );
 
@@ -141,7 +141,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "Q",
             1 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             1 ether
         );
         vm.startPrank(alice);
@@ -166,7 +166,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "Q",
             1 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             1 ether
         );
         vm.startPrank(alice);
@@ -191,7 +191,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "Q",
             1 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             1 ether
         );
         vm.startPrank(alice);
@@ -204,7 +204,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "Q",
             1 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             1 ether
         );
         vm.startPrank(alice);
@@ -230,7 +230,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "Q",
             1 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             1 ether
         );
         uint256 newTimeStamp = block.timestamp + 1 days + 5 minutes;
@@ -255,7 +255,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "Q",
             1 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             1 ether
         );
         vm.startPrank(alice);
@@ -272,7 +272,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "Q",
             1 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             1 ether
         );
         uint256 newTimeStamp = block.timestamp + 1 days + 5 minutes;
@@ -288,7 +288,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "Q",
             1 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             1 ether
         );
         (, , uint256 close, , , , , , , ) = _readMarket(marketId);
@@ -307,7 +307,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "Q",
             1 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             1 ether
         );
         uint256 newTimeStamp = block.timestamp + 1 days + 5 minutes;
@@ -372,7 +372,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "Q",
             1 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             3 ether
         );
         uint256 newTimeStamp = block.timestamp + 1 days + 5 minutes;
@@ -449,7 +449,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "Q",
             1 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             3 ether
         );
 
@@ -489,7 +489,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "Q",
             1 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             3 ether
         );
 
@@ -535,7 +535,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "Q",
             1 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             3 ether
         );
 
@@ -568,7 +568,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "Q",
             1 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             3 ether
         );
 
@@ -600,7 +600,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "Q",
             1 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             3 ether
         );
         vm.prank(alice);
@@ -632,7 +632,7 @@ contract PredictionMarketTest is Test {
         uint256 marketId = market.createMarket(
             "Q",
             1 days,
-            "category",
+            PredictionMarket.MarketCategory.Crypto,
             3 ether
         );
         vm.prank(alice);
@@ -688,7 +688,12 @@ contract PredictionMarketTest is Test {
     function _prepareAndRequestSettlement(
         string memory question
     ) internal returns (uint256 id) {
-        id = market.createMarket(question, 1 days, "category", 1 ether);
+        id = market.createMarket(
+            question,
+            1 days,
+            PredictionMarket.MarketCategory.Crypto,
+            1 ether
+        );
         vm.warp(block.timestamp + 1 days + 5 minutes);
         market.requestSettlement(id);
     }
