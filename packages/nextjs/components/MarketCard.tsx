@@ -17,7 +17,7 @@ const MarketCard = ({ market }: MarketCardProps) => {
   const now = new Date();
   const daysLeft = Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
   return (
-    <Link href={`/markets/${market.id}`} className="block">
+    <Link href={`/market-detail/${market.id}`} className="block">
       <div className="glass-card-hover p-4 h-full flex flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-sm font-semibold leading-snug line-clamp-2 flex-1">{market.title}</h3>

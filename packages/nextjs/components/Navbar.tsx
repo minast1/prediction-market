@@ -8,7 +8,7 @@ const navItems = [
   { to: "/", label: "Home", icon: TrendingUp },
   { to: "/markets", label: "Markets", icon: Search },
   { to: "/portfolio", label: "Portfolio", icon: Briefcase },
-  { to: "/admin", label: "Admin", icon: Shield },
+  { to: "/dashboard/admin-portal", label: "Admin", icon: Shield },
 ];
 const Navbar = () => {
   const pathname = usePathname();
