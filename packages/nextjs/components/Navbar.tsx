@@ -1,8 +1,10 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { RainbowKitCustomConnectButton } from "./scaffold-eth";
+import { FaucetButton, RainbowKitCustomConnectButton } from "./scaffold-eth";
 import { BarChart3, Briefcase, Search, Shield, TrendingUp } from "lucide-react";
+import { hardhat } from "viem/chains";
+import { useTargetNetwork } from "~~/hooks/scaffold-eth";
 
 const navItems = [
   { to: "/", label: "Home", icon: TrendingUp },
@@ -12,6 +14,8 @@ const navItems = [
 ];
 const Navbar = () => {
   const pathname = usePathname();
+  const { targetNetwork } = useTargetNetwork();
+  const isLocalNetwork = targetNetwork.id === hardhat.id;
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl">
       <div className="container flex h-14 items-center justify-between">
@@ -39,8 +43,10 @@ const Navbar = () => {
             );
           })}
         </nav>
-
-        <RainbowKitCustomConnectButton />
+        <div className="flex items-center gap-3">
+          <RainbowKitCustomConnectButton />
+          {isLocalNetwork && <FaucetButton />}
+        </div>
       </div>
     </header>
   );

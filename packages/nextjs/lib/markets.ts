@@ -25,7 +25,7 @@ export interface Position {
   pnl: number;
   pnlPercent: number;
 }
-const Category = {
+export const Category = {
   Crypto: 0,
   Sports: 1,
   Politics: 2,
@@ -38,14 +38,15 @@ const Category = {
 };
 
 export const CATEGORIES = [
-  "All",
-  "Politics",
   "Crypto",
   "Sports",
+  "Politics",
+  "Weather",
   "Tech",
-  "Science",
   "Entertainment",
   "Economics",
+  "Science",
+  "All",
 ] as const;
 
 export type Category = (typeof CATEGORIES)[number];
@@ -122,7 +123,7 @@ export const MOCK_MARKETS: Market[] = [
     yesPrice: 0.78,
     noPrice: 0.22,
     priceHistory: generatePriceHistory(0.78),
-    description: "Resolves YES if SpaceX Starship completes a full orbital flight before March 31, 2026.",
+    description: "s",
     resolved: false,
     isNew: true,
   },

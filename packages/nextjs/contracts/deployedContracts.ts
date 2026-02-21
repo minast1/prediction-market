@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   31337: {
     PredictionMarket: {
-      address: "0x700b6a60ce7eaaea56f065753d8dcb9653dbad35",
+      address: "0xa15bb66138824a1c7167f5e85b957d04dd34e468",
       abi: [
         {
           type: "constructor",
@@ -71,14 +71,14 @@ const deployedContracts = {
               internalType: "uint256",
             },
             {
+              name: "_criteria",
+              type: "string",
+              internalType: "string",
+            },
+            {
               name: "_category",
               type: "uint8",
               internalType: "enum PredictionMarket.MarketCategory",
-            },
-            {
-              name: "_liquidity",
-              type: "uint256",
-              internalType: "uint256",
             },
           ],
           outputs: [
@@ -88,7 +88,87 @@ const deployedContracts = {
               internalType: "uint256",
             },
           ],
-          stateMutability: "nonpayable",
+          stateMutability: "payable",
+        },
+        {
+          type: "function",
+          name: "getAllMarkets",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "tuple[]",
+              internalType: "struct PredictionMarket.Market[]",
+              components: [
+                {
+                  name: "question",
+                  type: "string",
+                  internalType: "string",
+                },
+                {
+                  name: "marketOpen",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "marketClose",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "category",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.MarketCategory",
+                },
+                {
+                  name: "outcome",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Outcome",
+                },
+                {
+                  name: "status",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Status",
+                },
+                {
+                  name: "settledAt",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "evidenceURI",
+                  type: "string",
+                  internalType: "string",
+                },
+                {
+                  name: "confidenceBps",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "yesShares",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "noShares",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "criteria",
+                  type: "string",
+                  internalType: "string",
+                },
+                {
+                  name: "liquidity",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+              ],
+            },
+          ],
+          stateMutability: "view",
         },
         {
           type: "function",
@@ -225,6 +305,11 @@ const deployedContracts = {
                   name: "noShares",
                   type: "uint256",
                   internalType: "uint256",
+                },
+                {
+                  name: "criteria",
+                  type: "string",
+                  internalType: "string",
                 },
                 {
                   name: "liquidity",
@@ -381,6 +466,11 @@ const deployedContracts = {
               internalType: "uint256",
             },
             {
+              name: "criteria",
+              type: "string",
+              internalType: "string",
+            },
+            {
               name: "liquidity",
               type: "uint256",
               internalType: "uint256",
@@ -521,6 +611,34 @@ const deployedContracts = {
         },
         {
           type: "function",
+          name: "settleMarket",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "outcome",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Outcome",
+            },
+            {
+              name: "confidenceBps",
+              type: "uint16",
+              internalType: "uint16",
+            },
+            {
+              name: "evidenceURI",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
           name: "settleMarketManually",
           inputs: [
             {
@@ -568,37 +686,6 @@ const deployedContracts = {
           ],
           outputs: [],
           stateMutability: "nonpayable",
-        },
-        {
-          type: "event",
-          name: "Bought",
-          inputs: [
-            {
-              name: "id",
-              type: "uint256",
-              indexed: true,
-              internalType: "uint256",
-            },
-            {
-              name: "user",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "outcome",
-              type: "bool",
-              indexed: false,
-              internalType: "bool",
-            },
-            {
-              name: "amount",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
         },
         {
           type: "event",
@@ -728,6 +815,19 @@ const deployedContracts = {
         },
         {
           type: "event",
+          name: "MarketDeleted",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
           name: "OwnershipTransferred",
           inputs: [
             {
@@ -741,6 +841,43 @@ const deployedContracts = {
               type: "address",
               indexed: true,
               internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "PriceAction",
+          inputs: [
+            {
+              name: "id",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "user",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "outcome",
+              type: "bool",
+              indexed: false,
+              internalType: "bool",
+            },
+            {
+              name: "amount",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "timeStamp",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
             },
           ],
           anonymous: false,
@@ -813,47 +950,16 @@ const deployedContracts = {
               internalType: "enum PredictionMarket.Status",
             },
             {
-              name: "outcome",
+              name: "channel",
               type: "uint8",
               indexed: true,
-              internalType: "enum PredictionMarket.Outcome",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "Sold",
-          inputs: [
-            {
-              name: "id",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-            {
-              name: "user",
-              type: "address",
-              indexed: false,
-              internalType: "address",
+              internalType: "enum PredictionMarket.Channel",
             },
             {
               name: "outcome",
-              type: "bool",
+              type: "uint8",
               indexed: false,
-              internalType: "bool",
-            },
-            {
-              name: "amount",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-            {
-              name: "payout",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
+              internalType: "enum PredictionMarket.Outcome",
             },
           ],
           anonymous: false,
@@ -920,6 +1026,17 @@ const deployedContracts = {
           type: "error",
           name: "InvalidForwarderAddress",
           inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidMarket",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
         },
         {
           type: "error",
@@ -1106,7 +1223,1228 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 1,
+      deployedOnBlock: 2,
+    },
+  },
+  11155111: {
+    PredictionMarket: {
+      address: "0xeaeeb1f7a6968a5f59e6dd4fc23a12b54d6451af",
+      abi: [
+        {
+          type: "constructor",
+          inputs: [
+            {
+              name: "forwarderAddress",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "buy",
+          inputs: [
+            {
+              name: "id",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "outcome",
+              type: "bool",
+              internalType: "bool",
+            },
+            {
+              name: "quoteAmount",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "payable",
+        },
+        {
+          type: "function",
+          name: "claimWinnings",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "createMarket",
+          inputs: [
+            {
+              name: "_question",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_duration",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "_criteria",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_category",
+              type: "uint8",
+              internalType: "enum PredictionMarket.MarketCategory",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "payable",
+        },
+        {
+          type: "function",
+          name: "getAllMarkets",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "tuple[]",
+              internalType: "struct PredictionMarket.Market[]",
+              components: [
+                {
+                  name: "question",
+                  type: "string",
+                  internalType: "string",
+                },
+                {
+                  name: "marketOpen",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "marketClose",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "category",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.MarketCategory",
+                },
+                {
+                  name: "outcome",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Outcome",
+                },
+                {
+                  name: "status",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Status",
+                },
+                {
+                  name: "settledAt",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "evidenceURI",
+                  type: "string",
+                  internalType: "string",
+                },
+                {
+                  name: "confidenceBps",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "yesShares",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "noShares",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "criteria",
+                  type: "string",
+                  internalType: "string",
+                },
+                {
+                  name: "liquidity",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+              ],
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getExpectedAuthor",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getExpectedWorkflowId",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getExpectedWorkflowName",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "bytes10",
+              internalType: "bytes10",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getForwarderAddress",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getMarketCount",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getMarketInfo",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "tuple",
+              internalType: "struct PredictionMarket.Market",
+              components: [
+                {
+                  name: "question",
+                  type: "string",
+                  internalType: "string",
+                },
+                {
+                  name: "marketOpen",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "marketClose",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "category",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.MarketCategory",
+                },
+                {
+                  name: "outcome",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Outcome",
+                },
+                {
+                  name: "status",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Status",
+                },
+                {
+                  name: "settledAt",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "evidenceURI",
+                  type: "string",
+                  internalType: "string",
+                },
+                {
+                  name: "confidenceBps",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "yesShares",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "noShares",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "criteria",
+                  type: "string",
+                  internalType: "string",
+                },
+                {
+                  name: "liquidity",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+              ],
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getPrediction",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "tuple",
+              internalType: "struct PredictionMarket.Prediction",
+              components: [
+                {
+                  name: "yesAmount",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "noAmount",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "lastSide",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Outcome",
+                },
+                {
+                  name: "lastUpdated",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "claimed",
+                  type: "bool",
+                  internalType: "bool",
+                },
+              ],
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getUri",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "marketCount",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "markets",
+          inputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "question",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "marketOpen",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "marketClose",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "category",
+              type: "uint8",
+              internalType: "enum PredictionMarket.MarketCategory",
+            },
+            {
+              name: "outcome",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Outcome",
+            },
+            {
+              name: "status",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Status",
+            },
+            {
+              name: "settledAt",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "evidenceURI",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "confidenceBps",
+              type: "uint16",
+              internalType: "uint16",
+            },
+            {
+              name: "yesShares",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "noShares",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "criteria",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "liquidity",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "onReport",
+          inputs: [
+            {
+              name: "metadata",
+              type: "bytes",
+              internalType: "bytes",
+            },
+            {
+              name: "report",
+              type: "bytes",
+              internalType: "bytes",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "owner",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "renounceOwnership",
+          inputs: [],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "requestSettlement",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "sell",
+          inputs: [
+            {
+              name: "id",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "outcome",
+              type: "bool",
+              internalType: "bool",
+            },
+            {
+              name: "amount",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "minPayout",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "setExpectedAuthor",
+          inputs: [
+            {
+              name: "_author",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "setExpectedWorkflowId",
+          inputs: [
+            {
+              name: "_id",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "setExpectedWorkflowName",
+          inputs: [
+            {
+              name: "_name",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "setForwarderAddress",
+          inputs: [
+            {
+              name: "_forwarder",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "settleMarket",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "outcome",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Outcome",
+            },
+            {
+              name: "confidenceBps",
+              type: "uint16",
+              internalType: "uint16",
+            },
+            {
+              name: "evidenceURI",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "settleMarketManually",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "outcome",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Outcome",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "supportsInterface",
+          inputs: [
+            {
+              name: "interfaceId",
+              type: "bytes4",
+              internalType: "bytes4",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "pure",
+        },
+        {
+          type: "function",
+          name: "transferOwnership",
+          inputs: [
+            {
+              name: "newOwner",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "event",
+          name: "Claimed",
+          inputs: [
+            {
+              name: "id",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "user",
+              type: "address",
+              indexed: false,
+              internalType: "address",
+            },
+            {
+              name: "payout",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "ExpectedAuthorUpdated",
+          inputs: [
+            {
+              name: "previousAuthor",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "newAuthor",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "ExpectedWorkflowIdUpdated",
+          inputs: [
+            {
+              name: "previousId",
+              type: "bytes32",
+              indexed: true,
+              internalType: "bytes32",
+            },
+            {
+              name: "newId",
+              type: "bytes32",
+              indexed: true,
+              internalType: "bytes32",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "ExpectedWorkflowNameUpdated",
+          inputs: [
+            {
+              name: "previousName",
+              type: "bytes10",
+              indexed: true,
+              internalType: "bytes10",
+            },
+            {
+              name: "newName",
+              type: "bytes10",
+              indexed: true,
+              internalType: "bytes10",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "ForwarderAddressUpdated",
+          inputs: [
+            {
+              name: "previousForwarder",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "newForwarder",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "MarketCreated",
+          inputs: [
+            {
+              name: "id",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "question",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "endTime",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "MarketDeleted",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "OwnershipTransferred",
+          inputs: [
+            {
+              name: "previousOwner",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "newOwner",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "PriceAction",
+          inputs: [
+            {
+              name: "id",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "user",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "outcome",
+              type: "bool",
+              indexed: false,
+              internalType: "bool",
+            },
+            {
+              name: "amount",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "timeStamp",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "Resolved",
+          inputs: [
+            {
+              name: "id",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "outcome",
+              type: "bool",
+              indexed: false,
+              internalType: "bool",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "SecurityWarning",
+          inputs: [
+            {
+              name: "message",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "SettlementRequested",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "question",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "SettlementResponse",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "status",
+              type: "uint8",
+              indexed: true,
+              internalType: "enum PredictionMarket.Status",
+            },
+            {
+              name: "channel",
+              type: "uint8",
+              indexed: true,
+              internalType: "enum PredictionMarket.Channel",
+            },
+            {
+              name: "outcome",
+              type: "uint8",
+              indexed: false,
+              internalType: "enum PredictionMarket.Outcome",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "error",
+          name: "AlreadyClaimed",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "AlreadyPredicted",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "AmountZero",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "IncorrectPrediction",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InsufficientLotSize",
+          inputs: [
+            {
+              name: "amount",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "InsufficientPayment",
+          inputs: [
+            {
+              name: "amt",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "InvalidAuthor",
+          inputs: [
+            {
+              name: "received",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "expected",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "InvalidForwarderAddress",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidMarket",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "InvalidOutcome",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidSender",
+          inputs: [
+            {
+              name: "sender",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "expected",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "InvalidWorkflowId",
+          inputs: [
+            {
+              name: "received",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+            {
+              name: "expected",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "InvalidWorkflowName",
+          inputs: [
+            {
+              name: "received",
+              type: "bytes10",
+              internalType: "bytes10",
+            },
+            {
+              name: "expected",
+              type: "bytes10",
+              internalType: "bytes10",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "ManualSettlementNotAllowed",
+          inputs: [
+            {
+              name: "current",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Status",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "MarketAlreadySettled",
+          inputs: [
+            {
+              name: "settleTs",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "MarketNotClosed",
+          inputs: [
+            {
+              name: "nowTs",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "closeTs",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "MarketNotOpen",
+          inputs: [
+            {
+              name: "nowTs",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "closeTs",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "MarketNotSettled",
+          inputs: [
+            {
+              name: "current",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Status",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "NoWinners",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "NotSettledYet",
+          inputs: [
+            {
+              name: "current",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Status",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "OwnableInvalidOwner",
+          inputs: [
+            {
+              name: "owner",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "OwnableUnauthorizedAccount",
+          inputs: [
+            {
+              name: "account",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "SettlementNotRequested",
+          inputs: [
+            {
+              name: "current",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Status",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "StatusNotOpen",
+          inputs: [
+            {
+              name: "current",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Status",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "WorkflowNameRequiresAuthorValidation",
+          inputs: [],
+        },
+      ],
+      inheritedFunctions: {},
+      deployedOnBlock: 10296558,
     },
   },
 } as const;

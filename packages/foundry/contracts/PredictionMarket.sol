@@ -12,19 +12,21 @@ contract PredictionMarket is ReceiverTemplate {
     // ======== EVENTS ===========
     // ===========================
     event MarketCreated(uint256 indexed id, string question, uint256 endTime);
-    event Bought(
+    event PriceAction(
         uint256 indexed id,
         address indexed user,
         bool outcome,
-        uint256 amount
-    );
-    event Sold(
-        uint256 id,
-        address user,
-        bool outcome,
         uint256 amount,
-        uint256 payout
+        uint256 timeStamp
     );
+    // event Sold(
+    //     uint256 indexed id,
+    //     address indexed user,
+    //     bool outcome,
+    //     uint256 amount,
+    //     uint256 payout
+    // );
+    event MarketDeleted(uint256 indexed marketId);
     event Resolved(uint256 id, bool outcome);
     event Claimed(uint256 id, address user, uint256 payout);
     /// @notice Emitted when a settlement response is received and processed.
@@ -34,7 +36,8 @@ contract PredictionMarket is ReceiverTemplate {
     event SettlementResponse(
         uint256 indexed marketId,
         Status indexed status,
-        Outcome indexed outcome
+        Channel indexed channel,
+        Outcome outcome
     );
     /// @notice Emitted when a settlement is requested for a market.
     /// @param marketId The ID of the market to settle.
@@ -51,6 +54,12 @@ contract PredictionMarket is ReceiverTemplate {
         No,
         Yes,
         Inconclusive
+    }
+
+    enum Channel {
+        None,
+        Manual,
+        Gemini
     }
     enum Status {
         Open,
@@ -85,6 +94,7 @@ contract PredictionMarket is ReceiverTemplate {
     error AlreadyPredicted();
     error AmountZero();
     error MarketNotSettled(Status current);
+    error InvalidMarket(uint256 marketId);
 
     error NotSettledYet(Status current);
     error InsufficientLotSize(uint256 amount);
@@ -110,6 +120,7 @@ contract PredictionMarket is ReceiverTemplate {
         uint16 confidenceBps; // Confidence level from Gemini (in basis points: 0–10000)
         uint256 yesShares; // Amount of yes shares bought or sold
         uint256 noShares; // Amount of no shares bought or sold
+        string criteria;
         uint256 liquidity; // total liqudity available for market
     }
 
@@ -145,19 +156,21 @@ contract PredictionMarket is ReceiverTemplate {
     function createMarket(
         string calldata _question,
         uint256 _duration,
-        MarketCategory _category,
-        uint256 _liquidity
-    ) external returns (uint256) {
+        string calldata _criteria,
+        MarketCategory _category
+    ) external payable returns (uint256) {
+        if (msg.value == 0) revert AmountZero();
         marketCount++;
         Market storage m = markets[marketCount];
 
         m.question = _question;
         m.category = _category;
         m.marketOpen = block.timestamp;
-        m.marketClose = block.timestamp + _duration;
-        m.liquidity = _liquidity;
+        m.marketClose = _duration;
+        m.liquidity = msg.value;
+        m.criteria = _criteria;
 
-        emit MarketCreated(marketCount, _question, block.timestamp + _duration);
+        emit MarketCreated(marketCount, _question, _duration);
 
         return marketCount;
     }
@@ -201,7 +214,7 @@ contract PredictionMarket is ReceiverTemplate {
             pred.lastSide = Outcome.No;
         }
         pred.lastUpdated = block.timestamp;
-        emit Bought(id, msg.sender, outcome, msg.value);
+        emit PriceAction(id, msg.sender, outcome, msg.value, block.timestamp);
     }
 
     /**
@@ -242,7 +255,7 @@ contract PredictionMarket is ReceiverTemplate {
         (bool success, ) = payable(msg.sender).call{value: minPayout}("");
         require(success, "ETH transfer failed");
 
-        emit Sold(id, msg.sender, outcome, amount, minPayout);
+        emit PriceAction(id, msg.sender, outcome, amount, block.timestamp);
     }
 
     /// @notice Request (CRE) to settle a market.
@@ -251,8 +264,8 @@ contract PredictionMarket is ReceiverTemplate {
     function requestSettlement(uint256 marketId) public {
         Market storage m = markets[marketId];
         if (m.status != Status.Open) revert StatusNotOpen(m.status);
-        if (m.marketClose > block.timestamp)
-            revert MarketNotClosed(block.timestamp, m.marketClose);
+        // if (m.marketClose > block.timestamp)
+        //     revert MarketNotClosed(block.timestamp, m.marketClose);  ///REVIVE THIS AFTER TESTING
 
         m.status = Status.SettlementRequested;
         emit SettlementRequested(marketId, m.question);
@@ -268,10 +281,12 @@ contract PredictionMarket is ReceiverTemplate {
         Outcome outcome,
         uint16 confidenceBps,
         string memory evidenceURI
-    ) private {
+    ) external {
         Market storage m = markets[marketId];
-        if (m.status != Status.SettlementRequested)
-            revert SettlementNotRequested(m.status);
+        Channel resolutionChannel;
+
+        // if (m.status != Status.SettlementRequested)
+        //     revert SettlementNotRequested(m.status);
 
         if (m.status == Status.Settled)
             revert MarketAlreadySettled(m.settledAt);
@@ -280,6 +295,7 @@ contract PredictionMarket is ReceiverTemplate {
             m.status = Status.NeedsManual;
         } else {
             m.status = Status.Settled;
+            resolutionChannel = Channel.Gemini;
             m.settledAt = block.timestamp;
         }
 
@@ -287,7 +303,12 @@ contract PredictionMarket is ReceiverTemplate {
         m.confidenceBps = confidenceBps;
         m.evidenceURI = evidenceURI;
 
-        emit SettlementResponse(marketId, m.status, m.outcome);
+        emit SettlementResponse(
+            marketId,
+            m.status,
+            resolutionChannel,
+            m.outcome
+        );
     }
 
     /// @notice Used to manually settle markets that were set to NeedsManual due to inconclusive Gemini response.
@@ -305,20 +326,20 @@ contract PredictionMarket is ReceiverTemplate {
         m.status = Status.Settled;
         m.settledAt = block.timestamp;
         m.outcome = outcome;
-        emit SettlementResponse(marketId, m.status, m.outcome);
+        emit SettlementResponse(marketId, m.status, Channel.Manual, m.outcome);
     }
 
     /// @notice Internal hook to process settlement reports from the receiver template.
     /// @dev Decodes ABI-encoded data and calls settleMarket().
     /// @param report ABI-encoded (marketId, outcome(uint8), confidenceBps, responseId).
-    function _processReport(bytes calldata report) internal override {
-        (
-            uint256 marketId,
-            uint8 outcome,
-            uint16 confidenceBps,
-            string memory responseId
-        ) = abi.decode(report, (uint256, uint8, uint16, string));
-        settleMarket(marketId, Outcome(outcome), confidenceBps, responseId);
+    function _processReport(bytes calldata report) internal pure override {
+        // (
+        //     uint256 marketId,
+        //     uint8 outcome,
+        //     uint16 confidenceBps,
+        //     string memory responseId
+        // ) = abi.decode(report, (uint256, uint8, uint16, string));
+        //settleMarket(marketId, Outcome(outcome), confidenceBps, responseId);
     }
 
     /// @notice Returns the evidence URI for a given market.
@@ -377,6 +398,29 @@ contract PredictionMarket is ReceiverTemplate {
     function getMarketCount() public view returns (uint256) {
         return marketCount;
     }
+
+    /**
+     * @notice Fetches all markets in a single call.
+     * @return An array of all Market structs currently in the contract.
+     */
+    function getAllMarkets() external view returns (Market[] memory) {
+        uint256 count = marketCount;
+        Market[] memory allMarkets = new Market[](count);
+        for (uint256 i = 0; i < count; i++) {
+            allMarkets[i] = markets[i + 1];
+        }
+        return allMarkets;
+    }
+
+    /**
+     * @notice Deletes a market by resetting its data.
+     * @dev Only the admin can call this. Note: userBalances for this market remain in state.
+     */
+    // function deleteMarket(uint256 marketId) external {
+    //     if (marketId > marketCount) revert InvalidMarket(marketId);
+    //     delete markets[marketId];
+    //     emit MarketDeleted(marketId);
+    // }
 
     function getPrediction(
         uint256 marketId

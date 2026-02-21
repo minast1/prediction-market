@@ -1,4 +1,5 @@
 import React from "react";
+import clsx from "clsx";
 import { Toast, ToastPosition, toast } from "react-hot-toast";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import {
@@ -14,12 +15,14 @@ type NotificationProps = {
   duration?: number;
   icon?: string;
   position?: ToastPosition;
+  className?: string;
 };
 
 type NotificationOptions = {
   duration?: number;
   icon?: string;
   position?: ToastPosition;
+  className?: string;
 };
 
 const ENUM_STATUSES = {
@@ -31,7 +34,7 @@ const ENUM_STATUSES = {
 };
 
 const DEFAULT_DURATION = 3000;
-const DEFAULT_POSITION: ToastPosition = "top-center";
+const DEFAULT_POSITION: ToastPosition = "bottom-right";
 
 /**
  * Custom Notification
@@ -41,17 +44,20 @@ const Notification = ({
   status,
   duration = DEFAULT_DURATION,
   icon,
+  className,
   position = DEFAULT_POSITION,
 }: NotificationProps) => {
   return toast.custom(
     (t: Toast) => (
       <div
-        className={`flex flex-row items-start justify-between max-w-sm rounded-xl shadow-center shadow-accent bg-base-200 p-4 transform-gpu relative transition-all duration-500 ease-in-out space-x-2
-        ${
+        className={clsx(
+          "flex flex-row items-start justify-between max-w-sm rounded-xl border-2 shadow-center shadow-2xl glass-card p-4 transform-gpu relative transition-all duration-500 ease-in-out space-x-2",
+
           position.substring(0, 3) == "top"
             ? `hover:translate-y-1 ${t.visible ? "top-0" : "-top-96"}`
-            : `hover:-translate-y-1 ${t.visible ? "bottom-0" : "-bottom-96"}`
-        }`}
+            : `hover:-translate-y-1 ${t.visible ? "bottom-0" : "-bottom-96"}`,
+          className,
+        )}
       >
         <div className="leading-[0] self-center">{icon ? icon : ENUM_STATUSES[status]}</div>
         <div className={`overflow-x-hidden break-words whitespace-pre-line ${icon ? "mt-1" : ""}`}>{content}</div>
@@ -70,19 +76,19 @@ const Notification = ({
 
 export const notification = {
   success: (content: React.ReactNode, options?: NotificationOptions) => {
-    return Notification({ content, status: "success", ...options });
+    return Notification({ content, status: "success", className: "bg-success/20 border-success/50", ...options });
   },
   info: (content: React.ReactNode, options?: NotificationOptions) => {
-    return Notification({ content, status: "info", ...options });
+    return Notification({ content, status: "info", className: "bg-accent/20 border-accent/50", ...options });
   },
   warning: (content: React.ReactNode, options?: NotificationOptions) => {
     return Notification({ content, status: "warning", ...options });
   },
   error: (content: React.ReactNode, options?: NotificationOptions) => {
-    return Notification({ content, status: "error", ...options });
+    return Notification({ content, status: "error", className: "bg-destructive/20 border-destructive/50", ...options });
   },
   loading: (content: React.ReactNode, options?: NotificationOptions) => {
-    return Notification({ content, status: "loading", ...options });
+    return Notification({ content, status: "loading", className: "bg-primary/20 border-primary/50", ...options });
   },
   remove: (toastId: string) => {
     toast.remove(toastId);
