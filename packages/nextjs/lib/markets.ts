@@ -1,19 +1,5 @@
-export interface Market {
-  id: string;
-  title: string;
-  category: string;
-  volume: number;
-  liquidity: number;
-  endDate: string;
-  yesPrice: number;
-  noPrice: number;
-  priceHistory: { time: string; yes: number }[];
-  description: string;
-  resolved: boolean;
-  outcome?: "yes" | "no";
-  trending?: boolean;
-  isNew?: boolean;
-}
+import { formatEther } from "viem";
+import { Market } from "~~/types/market";
 
 export interface Position {
   marketId: string;
@@ -46,7 +32,7 @@ export const CATEGORIES = [
   "Entertainment",
   "Economics",
   "Science",
-  "All",
+  "All Categories",
 ] as const;
 
 export type Category = (typeof CATEGORIES)[number];
@@ -68,7 +54,7 @@ function generatePriceHistory(finalPrice: number): { time: string; yes: number }
   return points;
 }
 
-export const MOCK_MARKETS: Market[] = [
+export const MOCK_MARKETS: any[] = [
   {
     id: "1",
     title: "Will Bitcoin exceed $150K by end of 2026?",
@@ -256,12 +242,18 @@ export const MOCK_POSITIONS: Position[] = [
   },
 ];
 
-export function formatVolume(n: number): string {
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
-  return `$${n}`;
+export function formatPrice(n: bigint, ethPrice: number): string {
+  if (!ethPrice || !n) return "0.00";
+  return (parseFloat(formatEther(n)) * ethPrice).toFixed(2);
 }
 
-export function formatPrice(p: number): string {
-  return `${Math.round(p * 100)}¢`;
-}
+export const getTrendingScore = (market: Market) => {
+  const now = BigInt(Math.floor(Date.now() / 1000));
+  const ageInSeconds = now - market.openDate;
+
+  // Prevent division by zero and provide a minimum age of 1 hour for fair scoring
+  const effectiveAge = ageInSeconds > 3600n ? ageInSeconds : 3600n;
+
+  // Score = Volume / Age (multiplied by 3600 to get "Volume per Hour")
+  return (market.volume * 3600n) / effectiveAge;
+};

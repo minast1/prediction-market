@@ -7,7 +7,7 @@ import {ReceiverTemplate} from "../interfaces/ReceiverTemplate.sol";
  * @title PredictionMarket
  * @dev A contract for prediction markets
  */
-contract PredictionMarket is ReceiverTemplate {
+contract PredictionMarket {
     // ===========================
     // ======== EVENTS ===========
     // ===========================
@@ -36,7 +36,6 @@ contract PredictionMarket is ReceiverTemplate {
     event SettlementResponse(
         uint256 indexed marketId,
         Status indexed status,
-        Channel indexed channel,
         Outcome outcome
     );
     /// @notice Emitted when a settlement is requested for a market.
@@ -114,14 +113,16 @@ contract PredictionMarket is ReceiverTemplate {
         uint256 marketClose; // Timestamp when the market closes for predictions
         MarketCategory category;
         Outcome outcome;
+        uint256 id;
         Status status; // Final outcome of the market
         uint256 settledAt; // Timestamp when settlement occurred
-        string evidenceURI; // Response ID of the Gemini request
         uint16 confidenceBps; // Confidence level from Gemini (in basis points: 0–10000)
         uint256 yesShares; // Amount of yes shares bought or sold
         uint256 noShares; // Amount of no shares bought or sold
         string criteria;
         uint256 liquidity; // total liqudity available for market
+        Channel resolutionChannel;
+        uint256 totalParticipants; // Tracks unique users with an active position
     }
 
     struct Prediction {
@@ -147,8 +148,7 @@ contract PredictionMarket is ReceiverTemplate {
     /// @dev Set at deployment and immutable thereafter.
     // IERC20 public immutable paymentToken;
 
-    /// @param forwarderAddress The address of the CRE forwarder contract that will call onReport().
-    constructor(address forwarderAddress) ReceiverTemplate(forwarderAddress) {}
+    constructor() {}
 
     // ===========================
     // ======== FUNCTIONS ========
@@ -167,6 +167,7 @@ contract PredictionMarket is ReceiverTemplate {
         m.category = _category;
         m.marketOpen = block.timestamp;
         m.marketClose = _duration;
+        m.id = marketCount;
         m.liquidity = msg.value;
         m.criteria = _criteria;
 
@@ -204,9 +205,14 @@ contract PredictionMarket is ReceiverTemplate {
 
         Prediction storage pred = predictions[id][msg.sender];
 
+        if (pred.lastUpdated == 0) {
+            m.totalParticipants++;
+        }
+
         if (outcome) {
             m.yesShares += msg.value;
             pred.yesAmount += msg.value;
+
             pred.lastSide = Outcome.Yes;
         } else {
             m.noShares += msg.value;
@@ -214,6 +220,7 @@ contract PredictionMarket is ReceiverTemplate {
             pred.lastSide = Outcome.No;
         }
         pred.lastUpdated = block.timestamp;
+
         emit PriceAction(id, msg.sender, outcome, msg.value, block.timestamp);
     }
 
@@ -248,8 +255,12 @@ contract PredictionMarket is ReceiverTemplate {
             m.noShares -= amount;
         }
 
-        if (pred.yesAmount == 0 && pred.noAmount == 0)
+        // If the user now has 0 shares in both YES and NO, they are no longer an active participant
+        if (pred.yesAmount == 0 && pred.noAmount == 0) {
             pred.lastSide = Outcome.None;
+            if (m.totalParticipants > 0) m.totalParticipants--;
+        }
+
         pred.lastUpdated = block.timestamp;
 
         (bool success, ) = payable(msg.sender).call{value: minPayout}("");
@@ -271,19 +282,16 @@ contract PredictionMarket is ReceiverTemplate {
         emit SettlementRequested(marketId, m.question);
     }
 
-    /// @notice Helper function invoked by _processReport.
     /// @param marketId The ID of the market being settled.
     /// @param outcome The resolved market outcome.
     /// @param confidenceBps Gemini confidence score in basis points (0–10000).
-    /// @param evidenceURI responseId from Gemini request
+    /// @dev Emits a SettlementResponse event for monitoring.
     function settleMarket(
         uint256 marketId,
         Outcome outcome,
-        uint16 confidenceBps,
-        string memory evidenceURI
+        uint16 confidenceBps
     ) external {
         Market storage m = markets[marketId];
-        Channel resolutionChannel;
 
         // if (m.status != Status.SettlementRequested)
         //     revert SettlementNotRequested(m.status);
@@ -295,20 +303,14 @@ contract PredictionMarket is ReceiverTemplate {
             m.status = Status.NeedsManual;
         } else {
             m.status = Status.Settled;
-            resolutionChannel = Channel.Gemini;
+            m.resolutionChannel = Channel.Gemini;
             m.settledAt = block.timestamp;
         }
 
         m.outcome = outcome;
         m.confidenceBps = confidenceBps;
-        m.evidenceURI = evidenceURI;
 
-        emit SettlementResponse(
-            marketId,
-            m.status,
-            resolutionChannel,
-            m.outcome
-        );
+        emit SettlementResponse(marketId, m.status, m.outcome);
     }
 
     /// @notice Used to manually settle markets that were set to NeedsManual due to inconclusive Gemini response.
@@ -325,32 +327,9 @@ contract PredictionMarket is ReceiverTemplate {
 
         m.status = Status.Settled;
         m.settledAt = block.timestamp;
+        m.resolutionChannel = Channel.Manual;
         m.outcome = outcome;
-        emit SettlementResponse(marketId, m.status, Channel.Manual, m.outcome);
-    }
-
-    /// @notice Internal hook to process settlement reports from the receiver template.
-    /// @dev Decodes ABI-encoded data and calls settleMarket().
-    /// @param report ABI-encoded (marketId, outcome(uint8), confidenceBps, responseId).
-    function _processReport(bytes calldata report) internal pure override {
-        // (
-        //     uint256 marketId,
-        //     uint8 outcome,
-        //     uint16 confidenceBps,
-        //     string memory responseId
-        // ) = abi.decode(report, (uint256, uint8, uint16, string));
-        //settleMarket(marketId, Outcome(outcome), confidenceBps, responseId);
-    }
-
-    /// @notice Returns the evidence URI for a given market.
-    /// @param marketId The ID of the market.
-    /// @return The constructed URI string.
-    function getUri(uint256 marketId) public view returns (string memory) {
-        return
-            string.concat(
-                "http://localhost:3000/",
-                markets[marketId].evidenceURI
-            );
+        emit SettlementResponse(marketId, m.status, m.outcome);
     }
 
     /// @notice Claim winnings after a market is settled.
@@ -424,7 +403,13 @@ contract PredictionMarket is ReceiverTemplate {
 
     function getPrediction(
         uint256 marketId
-    ) public view returns (Prediction memory) {
+    ) external view returns (Prediction memory) {
+        return predictions[marketId][msg.sender];
+    }
+
+    function getUserPredictions(
+        uint256 marketId
+    ) external view returns (Prediction memory) {
         return predictions[marketId][msg.sender];
     }
 }

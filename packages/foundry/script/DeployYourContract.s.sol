@@ -27,6 +27,6 @@ contract DeployYourContract is ScaffoldETHDeploy {
      */
     function run() external ScaffoldEthDeployerRunner {
         //new YourContract(deployer);
-        new PredictionMarket(0x15fC6ae953E024d975e77382eEeC56A9101f9F88);
+        new PredictionMarket();
     }
 }

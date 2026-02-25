@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Market, formatPrice } from "~~/lib/markets";
+import { Market } from "~~/types/market";
 
 interface TradePanelProps {
   market: Market;
@@ -9,7 +9,7 @@ const TradePanel = ({ market }: TradePanelProps) => {
   const [amount, setAmount] = useState("");
   const [tab, setTab] = useState<"buy" | "sell">("buy");
 
-  const price = side === "yes" ? market.yesPrice : market.noPrice;
+  const price = 5000; //side === "yes" ? market.yesShares : market.noPrice;
   const shares = amount ? parseFloat(amount) / price : 0;
   const potentialReturn = shares * (1 - price);
 
@@ -43,7 +43,7 @@ const TradePanel = ({ market }: TradePanelProps) => {
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          Yes {formatPrice(market.yesPrice)}
+          Yes {/* Yes  {formatPrice(market.yesPrice)} */}
         </button>
         <button
           onClick={() => setSide("no")}
@@ -51,7 +51,7 @@ const TradePanel = ({ market }: TradePanelProps) => {
             side === "no" ? "bg-no text-no-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          No {formatPrice(market.noPrice)}
+          No{/* No {formatPrice(market.noPrice)} */}
         </button>
       </div>
 
@@ -69,7 +69,7 @@ const TradePanel = ({ market }: TradePanelProps) => {
       <div className="space-y-2 text-sm">
         <div className="flex justify-between text-muted-foreground">
           <span>Price</span>
-          <span className="font-mono">{formatPrice(price)}</span>
+          <span className="font-mono">{price}</span>
         </div>
         <div className="flex justify-between text-muted-foreground">
           <span>Shares</span>
@@ -84,14 +84,14 @@ const TradePanel = ({ market }: TradePanelProps) => {
       </div>
 
       <button
-        disabled={!amount || market.resolved}
+        disabled={!amount || market.status === 3}
         className={`w-full rounded-lg py-3 text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
           side === "yes"
             ? "bg-primary text-primary-foreground hover:brightness-110"
             : "bg-no text-no-foreground hover:brightness-110"
         }`}
       >
-        {market.resolved ? "Market Resolved" : `${tab === "buy" ? "Buy" : "Sell"} ${side === "yes" ? "Yes" : "No"}`}
+        {market.status === 3 ? "Market Resolved" : `${tab === "buy" ? "Buy" : "Sell"} ${side === "yes" ? "Yes" : "No"}`}
       </button>
     </div>
   );

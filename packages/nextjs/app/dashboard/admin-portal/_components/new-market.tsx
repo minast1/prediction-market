@@ -114,8 +114,9 @@ const NewMarketDialog = () => {
           value: parseEther(data.volume.toString()),
         },
         {
-          onBlockConfirmation: () => {
+          onBlockConfirmation: async () => {
             setIsLoading(false);
+
             form.reset({
               title: "",
               description: "",

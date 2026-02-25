@@ -15,7 +15,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { MOCK_MARKETS, MOCK_POSITIONS, formatPrice } from "~~/lib/markets";
+import { MOCK_MARKETS, MOCK_POSITIONS } from "~~/lib/markets";
 
 const Portfolio: NextPage = () => {
   const totalValue = MOCK_POSITIONS.reduce((s, p) => s + p.shares * p.currentPrice, 0);
@@ -210,8 +210,8 @@ const Portfolio: NextPage = () => {
                         <span className={pos.side === "yes" ? "yes-pill" : "no-pill"}>{pos.side.toUpperCase()}</span>
                       </td>
                       <td className="py-3 px-2 text-right font-mono">{pos.shares}</td>
-                      <td className="py-3 px-2 text-right font-mono">{formatPrice(pos.avgPrice)}</td>
-                      <td className="py-3 px-2 text-right font-mono">{formatPrice(pos.currentPrice)}</td>
+                      <td className="py-3 px-2 text-right font-mono">{pos.avgPrice}</td>
+                      <td className="py-3 px-2 text-right font-mono">{pos.currentPrice}</td>
                       <td
                         className={`py-3 px-4 text-right font-mono font-semibold ${pos.pnl >= 0 ? "price-up" : "price-down"}`}
                       >
@@ -249,7 +249,7 @@ const Portfolio: NextPage = () => {
                       <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                         <span className={pos.side === "yes" ? "yes-pill" : "no-pill"}>{pos.side.toUpperCase()}</span>
                         <span>
-                          {pos.shares} shares @ {formatPrice(pos.avgPrice)}
+                          {pos.shares} shares @ {pos.avgPrice}
                         </span>
                       </div>
                     </div>

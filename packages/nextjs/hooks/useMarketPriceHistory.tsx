@@ -19,26 +19,28 @@ interface PriceActionArgs {
 
 export const useMarketPriceHistory = (
   marketId: bigint | undefined,
-  contractAddress: `0x${string}`,
-  contractAbi: Abi,
+  contractAddress: `0x${string}` | undefined,
+  contractAbi: Abi | undefined,
 ) => {
   const publicClient = usePublicClient();
+  const isReady = !!marketId && !!publicClient && !!contractAddress && !!contractAbi;
 
   // 1. Fetch CURRENT state for the latest "live" price
   const { data: market, refetch: refetchMarket } = useScaffoldReadContract({
     contractName: "PredictionMarket",
     functionName: "getMarketInfo",
     args: [marketId],
-    query: { enabled: !!marketId },
+    query: { enabled: isReady },
   });
   const queryKey = ["marketPriceHistory", marketId?.toString(), contractAddress];
   // 2. Fetch Historical Logs for the Chart
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["marketPriceHistory", marketId?.toString(), contractAddress],
-    enabled: !!marketId && !!publicClient,
+    enabled: isReady,
     staleTime: 60000, // Data stays fresh for 60 seconds
-    gcTime: 1000 * 60 * 60, // Keep in cache for 1 hour
+    // gcTime: 1000 * 60 * 60, // Keep in cache for 1 hour
     queryFn: async () => {
+      if (!marketId || !contractAddress || !publicClient) return [];
       const logs = await publicClient!.getLogs({
         address: contractAddress,
         event: PRICEACTION_ABI,
@@ -50,7 +52,7 @@ export const useMarketPriceHistory = (
         .map(log => {
           try {
             const decoded = decodeEventLog({
-              abi: contractAbi,
+              abi: contractAbi!,
               data: log.data,
               topics: log.topics,
             });
@@ -74,12 +76,13 @@ export const useMarketPriceHistory = (
     address: contractAddress,
     abi: contractAbi,
     eventName: "PriceAction",
+    //fromBlock: BigInt(process.env.NEXT_PUBLIC_DEPLOYMENT_BLOCK || 0),
     onLogs: newLogs => {
       // Optimistically update the query cache instead of a full refetch
       queryClient.setQueryData(queryKey, (old: any[] = []) => {
         const enriched = newLogs.map(log => ({
           ...log,
-          decoded: decodeEventLog({ abi: contractAbi, data: log.data, topics: log.topics }),
+          decoded: decodeEventLog({ abi: contractAbi!, data: log.data, topics: log.topics }),
         }));
         return [...old, ...enriched];
       });
@@ -89,7 +92,7 @@ export const useMarketPriceHistory = (
 
   // 4. Calculate Chart Data
   // 4. Calculate Chart Data using LMSR
-  const { chartData, currentPrice } = useMemo(() => {
+  const { chartData, currentPrice, yesPrice, noPrice } = useMemo(() => {
     if (!market || !events.length) return { chartData: [], currentPrice: "0.50" };
 
     // Index 6 in your struct is liquidity (b)
@@ -99,7 +102,11 @@ export const useMarketPriceHistory = (
     // Live Price Calculation
     const curExpYes = Math.exp(Number(yesShares) / b);
     const curExpNo = Math.exp(Number(noShares) / b);
-    const livePrice = (curExpYes / (curExpYes + curExpNo)).toFixed(4);
+    const totalExp = curExpYes + curExpNo;
+
+    const livePrice = (curExpYes / totalExp).toFixed(4);
+    const liveYesPrice = (curExpYes / totalExp).toFixed(4);
+    const liveNoPrice = (curExpNo / totalExp).toFixed(4);
 
     // Reconstruct Price History
     let runningYes = 0n;
@@ -120,8 +127,8 @@ export const useMarketPriceHistory = (
       };
     });
 
-    return { chartData: data, currentPrice: livePrice };
+    return { chartData: data, currentPrice: livePrice, yesPrice: liveYesPrice, noPrice: liveNoPrice };
   }, [events, market]);
 
-  return { chartData, currentPrice, isLoading };
+  return { chartData, currentPrice, isLoading, yesPrice, noPrice };
 };

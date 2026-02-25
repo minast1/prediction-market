@@ -9,22 +9,12 @@ contract PredictionMarketTest is Test {
     address alice = makeAddr("alice");
     address bob = makeAddr("bob");
     address carol = makeAddr("carol");
-    address internal forwarderAddress =
-        address(0x15fC6ae953E024d975e77382eEeC56A9101f9F88);
-    // Events from SimpleMarket used for validation with `vm.expectEmit`
-    event SettlementRequested(uint256 indexed marketId, string question);
-    // event SettlementResponse(
-    //     uint256 indexed marketId,
-    //     PredictionMarket.Status indexed status,
-    //     PredictionMarket.Channel indexed channel,
-    //     PredictionMarket.Outcome outcome
-    // );
 
     function setUp() public {
         vm.deal(alice, 10 ether);
         vm.deal(bob, 10 ether);
         vm.deal(carol, 10 ether);
-        market = new PredictionMarket(forwarderAddress);
+        market = new PredictionMarket();
     }
 
     function test_createMarket() public {
@@ -45,11 +35,12 @@ contract PredictionMarketTest is Test {
             ,
             ,
             ,
-            ,
+            uint8 resolution_type,
             ,
             string memory criteria,
             uint8 category,
-            uint256 liquidity
+            uint256 liquidity,
+
         ) = _readMarket(marketId);
 
         assertEq(
@@ -61,6 +52,7 @@ contract PredictionMarketTest is Test {
         assertEq(status, uint8(PredictionMarket.Status.Open));
         assertEq(outcome, uint8(PredictionMarket.Outcome.None));
         assertEq(criteria, "criteria");
+        assertEq(resolution_type, uint8(PredictionMarket.Channel.None));
         assertEq(category, uint8(PredictionMarket.MarketCategory.Crypto));
         assertEq(liquidity, 2 ether);
     }
@@ -90,7 +82,7 @@ contract PredictionMarketTest is Test {
 
         vm.stopPrank();
 
-        (, , , , , , uint256 yesShares, , , , , , ) = _readMarket(marketId);
+        (, , , , , , uint256 yesShares, , , , , , , ) = _readMarket(marketId);
         assertEq(yesShares, 1 ether);
     }
 
@@ -126,6 +118,7 @@ contract PredictionMarketTest is Test {
             ,
             ,
             ,
+            ,
 
         ) = _readMarket(marketId);
         assertEq(yesShares, 0);
@@ -155,7 +148,47 @@ contract PredictionMarketTest is Test {
     // -------------------------
     // SELL
     // -------------------------
+    function testTracksTotalPredictionsForMarket() public {
+        uint256 marketId = market.createMarket{value: 1 ether}(
+            "Q",
+            1 days,
+            "criteria",
+            PredictionMarket.MarketCategory.Crypto
+        );
+        vm.startPrank(alice);
+        market.buy{value: 2 ether}(marketId, true, 2 ether);
 
+        market.sell(marketId, true, 1 ether, 1 ether);
+        vm.stopPrank();
+
+        vm.prank(bob);
+        market.buy{value: 2 ether}(marketId, false, 2 ether);
+        (, , , , , , , , , , , , , uint256 totalParticipants) = _readMarket(
+            marketId
+        );
+        assertEq(totalParticipants, 2);
+    }
+
+    function testPredictionsCountWhenUserHasNoShares() public {
+        uint256 marketId = market.createMarket{value: 1 ether}(
+            "Q",
+            1 days,
+            "criteria",
+            PredictionMarket.MarketCategory.Crypto
+        );
+        vm.startPrank(alice);
+        market.buy{value: 2 ether}(marketId, true, 2 ether);
+
+        market.sell(marketId, true, 2 ether, 1 ether);
+        vm.stopPrank();
+
+        vm.prank(bob);
+        market.buy{value: 2 ether}(marketId, false, 2 ether);
+        (, , , , , , , , , , , , , uint256 totalParticipants) = _readMarket(
+            marketId
+        );
+        assertEq(totalParticipants, 1); //since alice does not have any shares in the market
+    }
     function testSellYes() public {
         uint256 marketId = market.createMarket{value: 1 ether}(
             "Q",
@@ -177,6 +210,7 @@ contract PredictionMarketTest is Test {
             ,
             uint256 yesShares,
             uint256 noShares,
+            ,
             ,
             ,
             ,
@@ -214,6 +248,7 @@ contract PredictionMarketTest is Test {
             ,
             uint256 yesShares,
             uint256 noShares,
+            ,
             ,
             ,
             ,
@@ -280,7 +315,7 @@ contract PredictionMarketTest is Test {
         vm.warp(newTimeStamp);
         vm.startPrank(alice);
 
-        (, , uint256 close, , , , , , , , , , ) = _readMarket(marketId);
+        (, , uint256 close, , , , , , , , , , , ) = _readMarket(marketId);
         vm.expectRevert(
             abi.encodeWithSelector(
                 PredictionMarket.MarketNotOpen.selector,
@@ -308,92 +343,12 @@ contract PredictionMarketTest is Test {
     }
 
     // ================================================================
-    //                        SETTLEMENT REQUEST
-    // ================================================================
-
-    function testSettlementRequest() public {
-        uint256 marketId = market.createMarket{value: 1 ether}(
-            "Q",
-            1 days,
-            "criteria",
-            PredictionMarket.MarketCategory.Crypto
-        );
-        uint256 newTimeStamp = block.timestamp + 1 days + 5 minutes;
-        vm.warp(newTimeStamp);
-        vm.prank(alice);
-        market.requestSettlement(marketId);
-
-        (, , , uint8 status, , , , , , , , , ) = _readMarket(marketId);
-        assertEq(status, uint8(PredictionMarket.Status.SettlementRequested));
-    }
-
-    // function testRequestSettlementRevertsIfMarketIsOpen() public {
-    //     uint256 marketId = market.createMarket{value: 1 ether}(
-    //         "Q",
-    //         1 days,
-    //         "criteria",
-    //         PredictionMarket.MarketCategory.Crypto
-    //     );
-    //     (, , uint256 close, , , , , , , , , , ) = _readMarket(marketId);
-    //     vm.startPrank(alice);
-    //     vm.expectRevert(
-    //         abi.encodeWithSelector(
-    //             PredictionMarket.MarketNotClosed.selector,
-    //             block.timestamp,
-    //             close
-    //         )
-    //     );
-    //     market.requestSettlement(marketId);
-    // }
-
-    function testRequestSettlementRevertsIfStatusNotOpen() public {
-        uint256 marketId = market.createMarket{value: 3 ether}(
-            "Q",
-            1 days,
-            "criteria",
-            PredictionMarket.MarketCategory.Crypto
-        );
-        uint256 newTimeStamp = block.timestamp + 1 days + 5 minutes;
-        vm.warp(newTimeStamp);
-
-        vm.startPrank(alice);
-
-        market.requestSettlement(marketId);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                PredictionMarket.StatusNotOpen.selector,
-                PredictionMarket.Status.SettlementRequested
-            )
-        );
-        market.requestSettlement(marketId);
-    }
-
-    // ================================================================
     //                       SETTLEMENT EXECUTION
     // ================================================================
 
     function testSettleMarket() public {
-        uint256 marketId = _prepareAndRequestSettlement("Gang Ho..!");
-
-        vm.prank(forwarderAddress);
-        vm.expectEmit(true, true, true, false, address(market));
-        emit PredictionMarket.SettlementResponse(
-            marketId,
-            PredictionMarket.Status.Settled,
-            PredictionMarket.Channel.Gemini,
-            PredictionMarket.Outcome.Yes
-        );
-        market.onReport(
-            "",
-            abi.encode(
-                marketId,
-                PredictionMarket.Outcome.Yes,
-                9_500,
-                "evidence-123"
-            )
-        );
-
-        vm.stopPrank();
+        uint256 marketId = _prepareAndCloseMarket("Gang Ho..!");
+        market.settleMarket(marketId, PredictionMarket.Outcome.Yes, 1000);
         (
             ,
             ,
@@ -403,17 +358,19 @@ contract PredictionMarketTest is Test {
             ,
             ,
             ,
-            string memory evidence,
+            uint8 channelType,
             uint16 confidence,
+            ,
             ,
             ,
 
         ) = _readMarket(marketId);
         assertEq(status, uint8(PredictionMarket.Status.Settled));
         assertEq(outcome, uint8(PredictionMarket.Outcome.Yes));
+        assertEq(channelType, uint8(PredictionMarket.Channel.Gemini));
         assertGt(close, 0);
-        assertEq(evidence, "evidence-123");
-        assertEq(confidence, 9_500);
+        //assertEq(evidence, "evidence-123");
+        assertEq(confidence, 1000);
     }
 
     function testTradeRevertsIfMarketIsSettled() public {
@@ -427,7 +384,7 @@ contract PredictionMarketTest is Test {
         vm.warp(newTimeStamp);
         vm.startPrank(alice);
 
-        (, , uint256 close, , , , , , , , , , ) = _readMarket(marketId);
+        (, , uint256 close, , , , , , , , , , , ) = _readMarket(marketId);
         vm.expectRevert(
             abi.encodeWithSelector(
                 PredictionMarket.MarketNotOpen.selector,
@@ -444,38 +401,48 @@ contract PredictionMarketTest is Test {
     //                     MANUAL SETTLEMENT FLOW
     // ================================================================
     function testInconclusiveThenManualSettlement() public {
-        uint256 marketId = _prepareAndRequestSettlement("Q");
-        vm.prank(forwarderAddress);
-        market.onReport(
-            "",
-            abi.encode(
-                marketId,
-                PredictionMarket.Outcome.Inconclusive,
-                9_500,
-                "evidence-123"
-            )
+        uint256 marketId = _prepareAndCloseMarket("Q");
+
+        market.settleMarket(
+            marketId,
+            PredictionMarket.Outcome.Inconclusive,
+            1000
         );
-        vm.stopPrank();
-        (, , , uint8 status, uint8 outcome, , , , , , , , ) = _readMarket(
+        (, , , uint8 status, uint8 outcome, , , , , , , , , ) = _readMarket(
             marketId
         );
 
         assertEq(status, uint8(PredictionMarket.Status.NeedsManual));
+
         assertEq(outcome, uint8(PredictionMarket.Outcome.Inconclusive));
 
         // Step 2: Manual settlement NOW finalizes the market (status = Settled)
+
         vm.expectEmit();
         emit PredictionMarket.SettlementResponse(
             marketId,
             PredictionMarket.Status.Settled,
-            PredictionMarket.Channel.Manual,
             PredictionMarket.Outcome.Yes
         );
         market.settleMarketManually(marketId, PredictionMarket.Outcome.Yes);
 
-        (, , , uint8 status2, uint8 outcome2, , , , , , , , ) = _readMarket(
-            marketId
-        );
+        (
+            ,
+            ,
+            ,
+            uint8 status2,
+            uint8 outcome2,
+            ,
+            ,
+            ,
+            uint8 channelType2,
+            ,
+            ,
+            ,
+            ,
+
+        ) = _readMarket(marketId);
+        assertEq(channelType2, uint8(PredictionMarket.Channel.Manual));
         assertEq(status2, uint8(PredictionMarket.Status.Settled));
         assertEq(outcome2, uint8(PredictionMarket.Outcome.Yes));
     }
@@ -484,12 +451,12 @@ contract PredictionMarketTest is Test {
      * @notice Ensures manual settlement cannot occur if status != NeedsManual.
      */
     function testSettlementRevertsWhenWrongStatus() public {
-        uint256 marketId = _prepareAndRequestSettlement("Q");
+        uint256 marketId = _prepareAndCloseMarket("Q");
 
         vm.expectRevert(
             abi.encodeWithSelector(
                 PredictionMarket.ManualSettlementNotAllowed.selector,
-                PredictionMarket.Status.SettlementRequested
+                PredictionMarket.Status.Open
             )
         );
         market.settleMarketManually(marketId, PredictionMarket.Outcome.Yes);
@@ -518,16 +485,8 @@ contract PredictionMarketTest is Test {
         //Fast forward and resolve market
         vm.warp(block.timestamp + 1 days + 5 minutes);
         market.requestSettlement(marketId);
-        vm.prank(forwarderAddress);
-        market.onReport(
-            "",
-            abi.encode(
-                marketId,
-                PredictionMarket.Outcome.Yes,
-                9_500,
-                "evidence-123"
-            )
-        );
+
+        market.settleMarket(marketId, PredictionMarket.Outcome.Yes, 1000);
         uint256 balanceBefore = alice.balance;
         //Alice claims 1.5 ether
         vm.prank(alice);
@@ -561,16 +520,7 @@ contract PredictionMarketTest is Test {
         //Fast forward and resolve market
         vm.warp(block.timestamp + 1 days + 5 minutes);
         market.requestSettlement(marketId);
-        vm.prank(forwarderAddress);
-        market.onReport(
-            "",
-            abi.encode(
-                marketId,
-                PredictionMarket.Outcome.Yes,
-                9_500,
-                "evidence-123"
-            )
-        );
+        market.settleMarket(marketId, PredictionMarket.Outcome.Yes, 1000);
         //uint256 profit = (stake * losingPool) / winningPool;
         uint256 balanceBefore = alice.balance;
         uint256 carolBalanceBefore = carol.balance;
@@ -599,16 +549,7 @@ contract PredictionMarketTest is Test {
         //Fast forward and resolve market
         vm.warp(block.timestamp + 1 days + 5 minutes);
         market.requestSettlement(marketId);
-        vm.prank(forwarderAddress);
-        market.onReport(
-            "",
-            abi.encode(
-                marketId,
-                PredictionMarket.Outcome.Yes,
-                9_500,
-                "evidence-123"
-            )
-        );
+        market.settleMarket(marketId, PredictionMarket.Outcome.Yes, 1000);
         uint256 balanceBefore = alice.balance;
         //Alice claims 2 ether
         vm.prank(alice);
@@ -632,16 +573,7 @@ contract PredictionMarketTest is Test {
         //Fast forward and resolve market
         vm.warp(block.timestamp + 1 days + 5 minutes);
         market.requestSettlement(marketId);
-        vm.prank(forwarderAddress);
-        market.onReport(
-            "",
-            abi.encode(
-                marketId,
-                PredictionMarket.Outcome.No,
-                9_500,
-                "evidence-123"
-            )
-        );
+        market.settleMarket(marketId, PredictionMarket.Outcome.No, 1000);
 
         //Alice claims 2 ether
         vm.startPrank(alice);
@@ -662,16 +594,7 @@ contract PredictionMarketTest is Test {
         //Fast forward and resolve market
         vm.warp(block.timestamp + 1 days + 5 minutes);
         market.requestSettlement(marketId);
-        vm.prank(forwarderAddress);
-        market.onReport(
-            "",
-            abi.encode(
-                marketId,
-                PredictionMarket.Outcome.Yes,
-                9_500,
-                "evidence-123"
-            )
-        );
+        market.settleMarket(marketId, PredictionMarket.Outcome.Yes, 1000);
         vm.prank(alice);
         market.claimWinnings(marketId);
         //second attempt to claim
@@ -690,7 +613,7 @@ contract PredictionMarketTest is Test {
         );
         vm.prank(alice);
         market.buy{value: 2 ether}(marketId, true, 2 ether);
-        (, , , uint8 status, , , , , , , , , ) = _readMarket(marketId);
+        (, , , uint8 status, , , , , , , , , , ) = _readMarket(marketId);
         vm.startPrank(alice);
 
         vm.expectRevert(
@@ -716,11 +639,12 @@ contract PredictionMarketTest is Test {
             uint256 settledAt,
             uint256 yesShares,
             uint256 noShares,
-            string memory evidenceURI,
+            uint8 resolutionChannel,
             uint16 confidenceBps,
             string memory criteria,
             uint8 category,
-            uint256 liquidity
+            uint256 liquidity,
+            uint256 totalParticipants
 
             //tring memory evidence
         )
@@ -735,16 +659,17 @@ contract PredictionMarketTest is Test {
             m.settledAt,
             m.yesShares,
             m.noShares,
-            m.evidenceURI,
+            uint8(m.resolutionChannel),
             m.confidenceBps,
             m.criteria,
             uint8(m.category),
-            m.liquidity
+            m.liquidity,
+            m.totalParticipants
         );
     }
 
     /// @dev Opens a new market, advances time beyond close, and requests settlement.
-    function _prepareAndRequestSettlement(
+    function _prepareAndCloseMarket(
         string memory question
     ) internal returns (uint256 id) {
         id = market.createMarket{value: 3 ether}(
@@ -754,6 +679,5 @@ contract PredictionMarketTest is Test {
             PredictionMarket.MarketCategory.Crypto
         );
         vm.warp(block.timestamp + 1 days + 5 minutes);
-        market.requestSettlement(id);
     }
 }

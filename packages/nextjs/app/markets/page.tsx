@@ -7,7 +7,7 @@ import MarketCard from "~~/components/MarketCard";
 import { Category, MOCK_MARKETS } from "~~/lib/markets";
 
 const Markets: NextPage = () => {
-  const [category, setCategory] = useState<Category>("All");
+  const [category, setCategory] = useState<Category>("All Categories");
   const [search, setSearch] = useState("");
   const [sortField, setSortField] = useState<SortField>("volume");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -26,7 +26,7 @@ const Markets: NextPage = () => {
     let markets = MOCK_MARKETS;
 
     if (!showResolved) markets = markets.filter(m => !m.resolved);
-    if (category !== "All") markets = markets.filter(m => m.category === category);
+    if (category !== "All Categories") markets = markets.filter(m => m.category === category);
     if (search) {
       const q = search.toLowerCase();
       markets = markets.filter(m => m.title.toLowerCase().includes(q));

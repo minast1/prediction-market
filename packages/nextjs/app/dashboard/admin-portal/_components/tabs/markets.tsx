@@ -1,7 +1,9 @@
 import React from "react";
 import AdminTableSkeleton from "../../admin-table-skeleton";
 import MarketTable from "../../markets-table";
+import AdminSkeleton from "../admin-skeleton";
 import { AlertTriangle, Bot } from "lucide-react";
+import useMarketStats from "~~/hooks/useMarketStats";
 //import { Badge } from "~~/components/ui/badge";
 //import { Button } from "~~/components/ui/button";
 import { Market } from "~~/types/market";
@@ -11,19 +13,12 @@ type TProps = {
   isLoadingTableData: boolean;
 };
 const MarketsTab = ({ markets, isLoadingTableData }: TProps) => {
-  const resolvedMarkets = markets?.filter(m => m.status === 3);
-  const inconclusiveMarkets = markets?.filter(m => m.outcome === 3);
-  const aiResolvedMarkets = markets?.filter(m => m.status === 3);
-  const pendingMarkets = markets
-    ? markets.filter(m => {
-        const now = BigInt(Math.floor(Date.now() / 1000));
-        return m.endDate < now && m.outcome === 0;
-      })
-    : [];
+  const { pendingMarkets, aiResolvedMarkets, resolvedMarkets, inconclusiveMarkets } = useMarketStats(markets);
+  //const { price: nativeCurrencyPrice } = useFetchNativeCurrencyPrice();
 
-  //   if (isLoading) {
-  //     return <div className="min-h-screen bg-background">{/* <AdminSkeleton /> */}</div>;
-  //   }
+  if (isLoadingTableData) {
+    return <div className="min-h-screen bg-background">{<AdminSkeleton />}</div>;
+  }
   return (
     <div className="space-y-6">
       {/* AI Resolution Explainer */}
@@ -65,22 +60,22 @@ const MarketsTab = ({ markets, isLoadingTableData }: TProps) => {
       <div className="grid sm:grid-cols-4 gap-4">
         <div className="glass-card p-4">
           <div className="stat-label">Awaiting Settlement</div>
-          <div className="stat-value mt-1 text-muted-foreground">{pendingMarkets.length}</div>
+          <div className="stat-value mt-1 text-muted-foreground">{pendingMarkets?.length}</div>
         </div>
         <div className="glass-card p-4">
           <div className="stat-label">AI Resolved</div>
-          <div className="stat-value mt-1 text-primary">{aiResolvedMarkets.length}</div>
+          <div className="stat-value mt-1 text-primary">{aiResolvedMarkets?.length}</div>
         </div>
         <div className="glass-card p-4">
           <div className="stat-label flex items-center gap-1.5">
             <AlertTriangle className="h-3 w-3 text-yellow-400" />
             Inconclusive
           </div>
-          <div className="stat-value mt-1 text-yellow-400">{inconclusiveMarkets.length}</div>
+          <div className="stat-value mt-1 text-yellow-400">{inconclusiveMarkets?.length}</div>
         </div>
         <div className="glass-card p-4">
           <div className="stat-label">Total Resolved</div>
-          <div className="stat-value mt-1">{resolvedMarkets.length}</div>
+          <div className="stat-value mt-1">{resolvedMarkets?.length}</div>
         </div>
       </div>
 

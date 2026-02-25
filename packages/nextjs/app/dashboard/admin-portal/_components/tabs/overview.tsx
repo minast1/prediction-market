@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { useFetchNativeCurrencyPrice } from "@scaffold-ui/hooks";
 import { Activity, AlertTriangle, BarChart3, Bot, DollarSign } from "lucide-react";
 import {
@@ -13,12 +13,13 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { formatEther } from "viem";
 import { Badge } from "~~/components/ui/badge";
-import { CATEGORIES, formatVolume } from "~~/lib/markets";
+import useMarketStats from "~~/hooks/useMarketStats";
+import { CATEGORIES, formatPrice } from "~~/lib/markets";
+import { Market } from "~~/types/market";
 
 type TProps = {
-  markets: any[];
+  markets: Market[];
 };
 
 const PIE_COLORS = [
@@ -32,16 +33,13 @@ const PIE_COLORS = [
 ];
 
 const OverviewTab = ({ markets }: TProps) => {
+  const { inconclusiveMarkets, totalLiquidityUSD, totalVolumeUSD, activeMarkets, resolvedMarkets } =
+    useMarketStats(markets);
   const { price: nativeCurrencyPrice } = useFetchNativeCurrencyPrice();
-
-  const totalVolume = useMemo(() => {
-    if (!nativeCurrencyPrice) return 0;
-    const totalOverallVolume = markets?.reduce((s, m) => s + m.volume, 0n);
-    return parseFloat(formatEther(totalOverallVolume)) * nativeCurrencyPrice;
-  }, [nativeCurrencyPrice, markets]);
 
   const volumeOverTime = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
+    const totalVolume = Number(activeMarkets?.reduce((s, m) => s + (m.yesShares + m.noShares), 0n));
     d.setDate(d.getDate() - (6 - i));
     return {
       day: d.toLocaleDateString("en-US", { weekday: "short" }),
@@ -49,36 +47,33 @@ const OverviewTab = ({ markets }: TProps) => {
     };
   });
 
-  const totalLiquidity = markets?.reduce((s, m) => s + m.liquidity, 0);
-  const resolvedMarkets = markets?.filter(m => m.resolved);
-  const categoryData = CATEGORIES.filter(c => c !== "All").map(cat => ({
+  //const resolvedMarkets = markets?.filter(m => m.status === 3).slice(0, 2); //just the most recent 2;
+  const categoryData = CATEGORIES.filter(c => c !== "All Categories").map((cat, idx) => ({
     name: cat,
-    count: markets?.filter(m => m.category === cat).length,
-    volume: markets?.filter(m => m.category === cat).reduce((s, m) => s + m.volume, 0),
+    count: markets?.filter(m => m.category === idx).length,
+    volume: markets?.filter(m => m.category === idx).reduce((s, m) => s + Number(m.volume), 0),
   }));
-  const activeMarkets = markets?.filter(m => m.marketClose > Date.now() / 1000) || [];
-  const inconclusiveMarkets = markets?.filter(m => m.aiStatus === "inconclusive" && !m.resolved);
 
   return (
     <div className="space-y-6">
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Total Volume", value: formatVolume(totalVolume), icon: DollarSign, color: "text-primary" },
+          { label: "Total Volume", value: "$" + totalVolumeUSD, icon: DollarSign, color: "text-primary" },
           {
             label: "Active Markets",
-            value: activeMarkets.length.toString(),
+            value: activeMarkets?.length,
             icon: Activity,
             color: "text-primary",
           },
           {
             label: "Total Liquidity",
-            value: formatVolume(totalLiquidity),
+            value: "$" + totalLiquidityUSD,
             icon: BarChart3,
             color: "text-blue-400",
           },
           {
             label: "Inconclusive",
-            value: inconclusiveMarkets?.length.toString(),
+            value: inconclusiveMarkets?.length,
             icon: AlertTriangle,
             color: "text-yellow-400",
           },
@@ -109,7 +104,7 @@ const OverviewTab = ({ markets }: TProps) => {
                 tick={{ fill: "hsl(215, 12%, 55%)", fontSize: 10 }}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(v: number) => formatVolume(v)}
+                //tickFormatter={(v: number) => formatVolume(v)}
               />
               <Tooltip
                 contentStyle={{
@@ -128,24 +123,24 @@ const OverviewTab = ({ markets }: TProps) => {
         <div className="glass-card p-4">
           {/* Recently Resolved */}
           <h3 className="text-sm font-semibold mb-4">Recently Resolved</h3>
-          <div className="space-y-3">
-            {resolvedMarkets?.map(m => (
+          <div className="space-y-4">
+            {resolvedMarkets?.slice(0, 3).map(m => (
               <div key={m.id} className="glass-card p-4 flex items-center justify-between gap-4 opacity-70">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium truncate">{m.title}</span>
-                    {m.aiStatus === "resolved" && (
+                    {m.resolution_type == 2 && (
                       <Badge variant="secondary" className="text-[10px] gap-1">
                         <Bot className="h-2.5 w-2.5" /> AI
                       </Badge>
                     )}
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
-                    {m.category} · {formatVolume(m.volume)} volume
+                    {CATEGORIES[m.category]} · {formatPrice(m.volume, nativeCurrencyPrice) || 0} volume
                   </div>
                 </div>
-                <Badge variant={m.outcome === "yes" ? "default" : "destructive"} className="text-xs">
-                  {m.outcome?.toUpperCase()}
+                <Badge variant={m.outcome === 2 ? "default" : "destructive"} className="text-xs capitalize">
+                  {m.outcome === 2 ? "yes" : "no"}
                 </Badge>
               </div>
             ))}
@@ -168,7 +163,7 @@ const OverviewTab = ({ markets }: TProps) => {
               tick={{ fill: "hsl(215, 12%, 55%)", fontSize: 10 }}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(v: number) => formatVolume(v)}
+              // tickFormatter={(v: number) => formatVolume(v)}
             />
             <Tooltip
               contentStyle={{

@@ -5,7 +5,9 @@ import { ArrowRight, BarChart3, Shield, TrendingUp, Zap } from "lucide-react";
 //import { Address } from "@scaffold-ui/components";
 import type { NextPage } from "next";
 import MarketCard from "~~/components/MarketCard";
-import { MOCK_MARKETS, formatVolume } from "~~/lib/markets";
+import MarketCardSkeleton from "~~/components/MarketCardSkeleton";
+import useMarketStats from "~~/hooks/useMarketStats";
+import useTransformedMarketData from "~~/hooks/useTransformedMarketData";
 
 //import { hardhat } from "viem/chains";
 //import { useAccount } from "wagmi";
@@ -13,8 +15,9 @@ import { MOCK_MARKETS, formatVolume } from "~~/lib/markets";
 //import { useTargetNetwork } from "~~/hooks/scaffold-eth";
 
 const Home: NextPage = () => {
-  const trendingMarkets = MOCK_MARKETS.filter(m => m.trending && !m.resolved).slice(0, 3);
-  const totalVolume = MOCK_MARKETS.reduce((s, m) => s + m.volume, 0);
+  const { data: markets, isLoading: isLoadingMarkets } = useTransformedMarketData();
+
+  const { activeMarkets, resolvedMarkets, totalVolumeUSD, trendingMarkets } = useMarketStats(markets);
   return (
     <>
       {/* Hero */}
@@ -55,9 +58,9 @@ const Home: NextPage = () => {
       <section className="border-b border-border">
         <div className="container grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
           {[
-            { label: "Total Volume", value: formatVolume(totalVolume) },
-            { label: "Active Markets", value: MOCK_MARKETS.filter(m => !m.resolved).length.toString() },
-            { label: "Resolved", value: MOCK_MARKETS.filter(m => m.resolved).length.toString() },
+            { label: "Total Volume", value: totalVolumeUSD },
+            { label: "Active Markets", value: activeMarkets?.length.toString() },
+            { label: "Resolved", value: resolvedMarkets?.length.toString() },
             { label: "Categories", value: "7" },
           ].map(stat => (
             <div key={stat.label} className="py-6 px-4 text-center">
@@ -79,9 +82,9 @@ const Home: NextPage = () => {
           </Link>
         </div>
         <div className="grid md:grid-cols-3 gap-4">
-          {trendingMarkets.map(market => (
-            <MarketCard key={market.id} market={market} />
-          ))}
+          {isLoadingMarkets
+            ? Array.from({ length: 3 }).map((_, i) => <MarketCardSkeleton key={i} />)
+            : trendingMarkets?.map(market => <MarketCard key={Number(market.id)} market={market} />)}
         </div>
       </section>
       {/* Features */}

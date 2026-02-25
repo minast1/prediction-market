@@ -7,17 +7,11 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   31337: {
     PredictionMarket: {
-      address: "0xa15bb66138824a1c7167f5e85b957d04dd34e468",
+      address: "0x700b6a60ce7eaaea56f065753d8dcb9653dbad35",
       abi: [
         {
           type: "constructor",
-          inputs: [
-            {
-              name: "forwarderAddress",
-              type: "address",
-              internalType: "address",
-            },
-          ],
+          inputs: [],
           stateMutability: "nonpayable",
         },
         {
@@ -126,6 +120,11 @@ const deployedContracts = {
                   internalType: "enum PredictionMarket.Outcome",
                 },
                 {
+                  name: "id",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
                   name: "status",
                   type: "uint8",
                   internalType: "enum PredictionMarket.Status",
@@ -134,11 +133,6 @@ const deployedContracts = {
                   name: "settledAt",
                   type: "uint256",
                   internalType: "uint256",
-                },
-                {
-                  name: "evidenceURI",
-                  type: "string",
-                  internalType: "string",
                 },
                 {
                   name: "confidenceBps",
@@ -165,59 +159,17 @@ const deployedContracts = {
                   type: "uint256",
                   internalType: "uint256",
                 },
+                {
+                  name: "resolutionChannel",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Channel",
+                },
+                {
+                  name: "totalParticipants",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
               ],
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "getExpectedAuthor",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "getExpectedWorkflowId",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "bytes32",
-              internalType: "bytes32",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "getExpectedWorkflowName",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "bytes10",
-              internalType: "bytes10",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "getForwarderAddress",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
             },
           ],
           stateMutability: "view",
@@ -277,6 +229,11 @@ const deployedContracts = {
                   internalType: "enum PredictionMarket.Outcome",
                 },
                 {
+                  name: "id",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
                   name: "status",
                   type: "uint8",
                   internalType: "enum PredictionMarket.Status",
@@ -285,11 +242,6 @@ const deployedContracts = {
                   name: "settledAt",
                   type: "uint256",
                   internalType: "uint256",
-                },
-                {
-                  name: "evidenceURI",
-                  type: "string",
-                  internalType: "string",
                 },
                 {
                   name: "confidenceBps",
@@ -313,6 +265,16 @@ const deployedContracts = {
                 },
                 {
                   name: "liquidity",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "resolutionChannel",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Channel",
+                },
+                {
+                  name: "totalParticipants",
                   type: "uint256",
                   internalType: "uint256",
                 },
@@ -369,7 +331,7 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "getUri",
+          name: "getUserPredictions",
           inputs: [
             {
               name: "marketId",
@@ -380,8 +342,35 @@ const deployedContracts = {
           outputs: [
             {
               name: "",
-              type: "string",
-              internalType: "string",
+              type: "tuple",
+              internalType: "struct PredictionMarket.Prediction",
+              components: [
+                {
+                  name: "yesAmount",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "noAmount",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "lastSide",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Outcome",
+                },
+                {
+                  name: "lastUpdated",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "claimed",
+                  type: "bool",
+                  internalType: "bool",
+                },
+              ],
             },
           ],
           stateMutability: "view",
@@ -436,6 +425,11 @@ const deployedContracts = {
               internalType: "enum PredictionMarket.Outcome",
             },
             {
+              name: "id",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
               name: "status",
               type: "uint8",
               internalType: "enum PredictionMarket.Status",
@@ -444,11 +438,6 @@ const deployedContracts = {
               name: "settledAt",
               type: "uint256",
               internalType: "uint256",
-            },
-            {
-              name: "evidenceURI",
-              type: "string",
-              internalType: "string",
             },
             {
               name: "confidenceBps",
@@ -475,46 +464,18 @@ const deployedContracts = {
               type: "uint256",
               internalType: "uint256",
             },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "onReport",
-          inputs: [
             {
-              name: "metadata",
-              type: "bytes",
-              internalType: "bytes",
+              name: "resolutionChannel",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Channel",
             },
             {
-              name: "report",
-              type: "bytes",
-              internalType: "bytes",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "owner",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
+              name: "totalParticipants",
+              type: "uint256",
+              internalType: "uint256",
             },
           ],
           stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "renounceOwnership",
-          inputs: [],
-          outputs: [],
-          stateMutability: "nonpayable",
         },
         {
           type: "function",
@@ -559,58 +520,6 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "setExpectedAuthor",
-          inputs: [
-            {
-              name: "_author",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "setExpectedWorkflowId",
-          inputs: [
-            {
-              name: "_id",
-              type: "bytes32",
-              internalType: "bytes32",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "setExpectedWorkflowName",
-          inputs: [
-            {
-              name: "_name",
-              type: "string",
-              internalType: "string",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "setForwarderAddress",
-          inputs: [
-            {
-              name: "_forwarder",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
           name: "settleMarket",
           inputs: [
             {
@@ -627,11 +536,6 @@ const deployedContracts = {
               name: "confidenceBps",
               type: "uint16",
               internalType: "uint16",
-            },
-            {
-              name: "evidenceURI",
-              type: "string",
-              internalType: "string",
             },
           ],
           outputs: [],
@@ -650,38 +554,6 @@ const deployedContracts = {
               name: "outcome",
               type: "uint8",
               internalType: "enum PredictionMarket.Outcome",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "supportsInterface",
-          inputs: [
-            {
-              name: "interfaceId",
-              type: "bytes4",
-              internalType: "bytes4",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "bool",
-              internalType: "bool",
-            },
-          ],
-          stateMutability: "pure",
-        },
-        {
-          type: "function",
-          name: "transferOwnership",
-          inputs: [
-            {
-              name: "newOwner",
-              type: "address",
-              internalType: "address",
             },
           ],
           outputs: [],
@@ -708,82 +580,6 @@ const deployedContracts = {
               type: "uint256",
               indexed: false,
               internalType: "uint256",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "ExpectedAuthorUpdated",
-          inputs: [
-            {
-              name: "previousAuthor",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "newAuthor",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "ExpectedWorkflowIdUpdated",
-          inputs: [
-            {
-              name: "previousId",
-              type: "bytes32",
-              indexed: true,
-              internalType: "bytes32",
-            },
-            {
-              name: "newId",
-              type: "bytes32",
-              indexed: true,
-              internalType: "bytes32",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "ExpectedWorkflowNameUpdated",
-          inputs: [
-            {
-              name: "previousName",
-              type: "bytes10",
-              indexed: true,
-              internalType: "bytes10",
-            },
-            {
-              name: "newName",
-              type: "bytes10",
-              indexed: true,
-              internalType: "bytes10",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "ForwarderAddressUpdated",
-          inputs: [
-            {
-              name: "previousForwarder",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "newForwarder",
-              type: "address",
-              indexed: true,
-              internalType: "address",
             },
           ],
           anonymous: false,
@@ -822,25 +618,6 @@ const deployedContracts = {
               type: "uint256",
               indexed: true,
               internalType: "uint256",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "OwnershipTransferred",
-          inputs: [
-            {
-              name: "previousOwner",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "newOwner",
-              type: "address",
-              indexed: true,
-              internalType: "address",
             },
           ],
           anonymous: false,
@@ -903,19 +680,6 @@ const deployedContracts = {
         },
         {
           type: "event",
-          name: "SecurityWarning",
-          inputs: [
-            {
-              name: "message",
-              type: "string",
-              indexed: false,
-              internalType: "string",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
           name: "SettlementRequested",
           inputs: [
             {
@@ -948,12 +712,6 @@ const deployedContracts = {
               type: "uint8",
               indexed: true,
               internalType: "enum PredictionMarket.Status",
-            },
-            {
-              name: "channel",
-              type: "uint8",
-              indexed: true,
-              internalType: "enum PredictionMarket.Channel",
             },
             {
               name: "outcome",
@@ -1008,27 +766,6 @@ const deployedContracts = {
         },
         {
           type: "error",
-          name: "InvalidAuthor",
-          inputs: [
-            {
-              name: "received",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "expected",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "InvalidForwarderAddress",
-          inputs: [],
-        },
-        {
-          type: "error",
           name: "InvalidMarket",
           inputs: [
             {
@@ -1042,54 +779,6 @@ const deployedContracts = {
           type: "error",
           name: "InvalidOutcome",
           inputs: [],
-        },
-        {
-          type: "error",
-          name: "InvalidSender",
-          inputs: [
-            {
-              name: "sender",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "expected",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "InvalidWorkflowId",
-          inputs: [
-            {
-              name: "received",
-              type: "bytes32",
-              internalType: "bytes32",
-            },
-            {
-              name: "expected",
-              type: "bytes32",
-              internalType: "bytes32",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "InvalidWorkflowName",
-          inputs: [
-            {
-              name: "received",
-              type: "bytes10",
-              internalType: "bytes10",
-            },
-            {
-              name: "expected",
-              type: "bytes10",
-              internalType: "bytes10",
-            },
-          ],
         },
         {
           type: "error",
@@ -1174,28 +863,6 @@ const deployedContracts = {
         },
         {
           type: "error",
-          name: "OwnableInvalidOwner",
-          inputs: [
-            {
-              name: "owner",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "OwnableUnauthorizedAccount",
-          inputs: [
-            {
-              name: "account",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-        },
-        {
-          type: "error",
           name: "SettlementNotRequested",
           inputs: [
             {
@@ -1216,14 +883,9 @@ const deployedContracts = {
             },
           ],
         },
-        {
-          type: "error",
-          name: "WorkflowNameRequiresAuthorValidation",
-          inputs: [],
-        },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 2,
+      deployedOnBlock: 1,
     },
   },
   11155111: {
@@ -1232,13 +894,7 @@ const deployedContracts = {
       abi: [
         {
           type: "constructor",
-          inputs: [
-            {
-              name: "forwarderAddress",
-              type: "address",
-              internalType: "address",
-            },
-          ],
+          inputs: [],
           stateMutability: "nonpayable",
         },
         {
@@ -1347,6 +1003,11 @@ const deployedContracts = {
                   internalType: "enum PredictionMarket.Outcome",
                 },
                 {
+                  name: "id",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
                   name: "status",
                   type: "uint8",
                   internalType: "enum PredictionMarket.Status",
@@ -1355,11 +1016,6 @@ const deployedContracts = {
                   name: "settledAt",
                   type: "uint256",
                   internalType: "uint256",
-                },
-                {
-                  name: "evidenceURI",
-                  type: "string",
-                  internalType: "string",
                 },
                 {
                   name: "confidenceBps",
@@ -1386,59 +1042,17 @@ const deployedContracts = {
                   type: "uint256",
                   internalType: "uint256",
                 },
+                {
+                  name: "resolutionChannel",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Channel",
+                },
+                {
+                  name: "totalParticipants",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
               ],
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "getExpectedAuthor",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "getExpectedWorkflowId",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "bytes32",
-              internalType: "bytes32",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "getExpectedWorkflowName",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "bytes10",
-              internalType: "bytes10",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "getForwarderAddress",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
             },
           ],
           stateMutability: "view",
@@ -1498,6 +1112,11 @@ const deployedContracts = {
                   internalType: "enum PredictionMarket.Outcome",
                 },
                 {
+                  name: "id",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
                   name: "status",
                   type: "uint8",
                   internalType: "enum PredictionMarket.Status",
@@ -1506,11 +1125,6 @@ const deployedContracts = {
                   name: "settledAt",
                   type: "uint256",
                   internalType: "uint256",
-                },
-                {
-                  name: "evidenceURI",
-                  type: "string",
-                  internalType: "string",
                 },
                 {
                   name: "confidenceBps",
@@ -1534,6 +1148,16 @@ const deployedContracts = {
                 },
                 {
                   name: "liquidity",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "resolutionChannel",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Channel",
+                },
+                {
+                  name: "totalParticipants",
                   type: "uint256",
                   internalType: "uint256",
                 },
@@ -1590,7 +1214,7 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "getUri",
+          name: "getUserPredictions",
           inputs: [
             {
               name: "marketId",
@@ -1601,8 +1225,35 @@ const deployedContracts = {
           outputs: [
             {
               name: "",
-              type: "string",
-              internalType: "string",
+              type: "tuple",
+              internalType: "struct PredictionMarket.Prediction",
+              components: [
+                {
+                  name: "yesAmount",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "noAmount",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "lastSide",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Outcome",
+                },
+                {
+                  name: "lastUpdated",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "claimed",
+                  type: "bool",
+                  internalType: "bool",
+                },
+              ],
             },
           ],
           stateMutability: "view",
@@ -1657,6 +1308,11 @@ const deployedContracts = {
               internalType: "enum PredictionMarket.Outcome",
             },
             {
+              name: "id",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
               name: "status",
               type: "uint8",
               internalType: "enum PredictionMarket.Status",
@@ -1665,11 +1321,6 @@ const deployedContracts = {
               name: "settledAt",
               type: "uint256",
               internalType: "uint256",
-            },
-            {
-              name: "evidenceURI",
-              type: "string",
-              internalType: "string",
             },
             {
               name: "confidenceBps",
@@ -1696,46 +1347,18 @@ const deployedContracts = {
               type: "uint256",
               internalType: "uint256",
             },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "onReport",
-          inputs: [
             {
-              name: "metadata",
-              type: "bytes",
-              internalType: "bytes",
+              name: "resolutionChannel",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Channel",
             },
             {
-              name: "report",
-              type: "bytes",
-              internalType: "bytes",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "owner",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
+              name: "totalParticipants",
+              type: "uint256",
+              internalType: "uint256",
             },
           ],
           stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "renounceOwnership",
-          inputs: [],
-          outputs: [],
-          stateMutability: "nonpayable",
         },
         {
           type: "function",
@@ -1780,58 +1403,6 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "setExpectedAuthor",
-          inputs: [
-            {
-              name: "_author",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "setExpectedWorkflowId",
-          inputs: [
-            {
-              name: "_id",
-              type: "bytes32",
-              internalType: "bytes32",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "setExpectedWorkflowName",
-          inputs: [
-            {
-              name: "_name",
-              type: "string",
-              internalType: "string",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "setForwarderAddress",
-          inputs: [
-            {
-              name: "_forwarder",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
           name: "settleMarket",
           inputs: [
             {
@@ -1848,11 +1419,6 @@ const deployedContracts = {
               name: "confidenceBps",
               type: "uint16",
               internalType: "uint16",
-            },
-            {
-              name: "evidenceURI",
-              type: "string",
-              internalType: "string",
             },
           ],
           outputs: [],
@@ -1871,38 +1437,6 @@ const deployedContracts = {
               name: "outcome",
               type: "uint8",
               internalType: "enum PredictionMarket.Outcome",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "supportsInterface",
-          inputs: [
-            {
-              name: "interfaceId",
-              type: "bytes4",
-              internalType: "bytes4",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "bool",
-              internalType: "bool",
-            },
-          ],
-          stateMutability: "pure",
-        },
-        {
-          type: "function",
-          name: "transferOwnership",
-          inputs: [
-            {
-              name: "newOwner",
-              type: "address",
-              internalType: "address",
             },
           ],
           outputs: [],
@@ -1929,82 +1463,6 @@ const deployedContracts = {
               type: "uint256",
               indexed: false,
               internalType: "uint256",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "ExpectedAuthorUpdated",
-          inputs: [
-            {
-              name: "previousAuthor",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "newAuthor",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "ExpectedWorkflowIdUpdated",
-          inputs: [
-            {
-              name: "previousId",
-              type: "bytes32",
-              indexed: true,
-              internalType: "bytes32",
-            },
-            {
-              name: "newId",
-              type: "bytes32",
-              indexed: true,
-              internalType: "bytes32",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "ExpectedWorkflowNameUpdated",
-          inputs: [
-            {
-              name: "previousName",
-              type: "bytes10",
-              indexed: true,
-              internalType: "bytes10",
-            },
-            {
-              name: "newName",
-              type: "bytes10",
-              indexed: true,
-              internalType: "bytes10",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "ForwarderAddressUpdated",
-          inputs: [
-            {
-              name: "previousForwarder",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "newForwarder",
-              type: "address",
-              indexed: true,
-              internalType: "address",
             },
           ],
           anonymous: false,
@@ -2043,25 +1501,6 @@ const deployedContracts = {
               type: "uint256",
               indexed: true,
               internalType: "uint256",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "OwnershipTransferred",
-          inputs: [
-            {
-              name: "previousOwner",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "newOwner",
-              type: "address",
-              indexed: true,
-              internalType: "address",
             },
           ],
           anonymous: false,
@@ -2124,19 +1563,6 @@ const deployedContracts = {
         },
         {
           type: "event",
-          name: "SecurityWarning",
-          inputs: [
-            {
-              name: "message",
-              type: "string",
-              indexed: false,
-              internalType: "string",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
           name: "SettlementRequested",
           inputs: [
             {
@@ -2169,12 +1595,6 @@ const deployedContracts = {
               type: "uint8",
               indexed: true,
               internalType: "enum PredictionMarket.Status",
-            },
-            {
-              name: "channel",
-              type: "uint8",
-              indexed: true,
-              internalType: "enum PredictionMarket.Channel",
             },
             {
               name: "outcome",
@@ -2229,27 +1649,6 @@ const deployedContracts = {
         },
         {
           type: "error",
-          name: "InvalidAuthor",
-          inputs: [
-            {
-              name: "received",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "expected",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "InvalidForwarderAddress",
-          inputs: [],
-        },
-        {
-          type: "error",
           name: "InvalidMarket",
           inputs: [
             {
@@ -2263,54 +1662,6 @@ const deployedContracts = {
           type: "error",
           name: "InvalidOutcome",
           inputs: [],
-        },
-        {
-          type: "error",
-          name: "InvalidSender",
-          inputs: [
-            {
-              name: "sender",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "expected",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "InvalidWorkflowId",
-          inputs: [
-            {
-              name: "received",
-              type: "bytes32",
-              internalType: "bytes32",
-            },
-            {
-              name: "expected",
-              type: "bytes32",
-              internalType: "bytes32",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "InvalidWorkflowName",
-          inputs: [
-            {
-              name: "received",
-              type: "bytes10",
-              internalType: "bytes10",
-            },
-            {
-              name: "expected",
-              type: "bytes10",
-              internalType: "bytes10",
-            },
-          ],
         },
         {
           type: "error",
@@ -2395,28 +1746,6 @@ const deployedContracts = {
         },
         {
           type: "error",
-          name: "OwnableInvalidOwner",
-          inputs: [
-            {
-              name: "owner",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "OwnableUnauthorizedAccount",
-          inputs: [
-            {
-              name: "account",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-        },
-        {
-          type: "error",
           name: "SettlementNotRequested",
           inputs: [
             {
@@ -2436,11 +1765,6 @@ const deployedContracts = {
               internalType: "enum PredictionMarket.Status",
             },
           ],
-        },
-        {
-          type: "error",
-          name: "WorkflowNameRequiresAuthorValidation",
-          inputs: [],
         },
       ],
       inheritedFunctions: {},

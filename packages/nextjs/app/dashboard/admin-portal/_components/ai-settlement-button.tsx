@@ -30,7 +30,7 @@ const AiSettlementButton = ({ market }: { market: Market }) => {
           await writeContractAsync(
             {
               functionName: "settleMarket",
-              args: [BigInt(market.id), parsedOutput, res.output.confidence, "eventUri"],
+              args: [BigInt(market.id), parsedOutput, res.output.confidence],
             },
             {
               onBlockConfirmation: () => {

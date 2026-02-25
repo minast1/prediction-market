@@ -1,39 +1,58 @@
 import React from "react";
 import Link from "next/link";
+import { useFetchNativeCurrencyPrice } from "@scaffold-ui/hooks";
 import { BarChart2, Clock, TrendingUp, Zap } from "lucide-react";
-import { Market, formatPrice, formatVolume } from "~~/lib/markets";
+import { useScaffoldContract } from "~~/hooks/scaffold-eth";
+import { useMarketPriceHistory } from "~~/hooks/useMarketPriceHistory";
+import useMarketStats from "~~/hooks/useMarketStats";
+import useTransformedMarketData from "~~/hooks/useTransformedMarketData";
+import { Market } from "~~/types/market";
 
 interface MarketCardProps {
   market: Market;
 }
 const MarketCard = ({ market }: MarketCardProps) => {
+  const { data: marketContract } = useScaffoldContract({ contractName: "PredictionMarket" });
+  const { price: nativeCurrencyPrice } = useFetchNativeCurrencyPrice();
+  const { data: marketData } = useTransformedMarketData();
+  const { yesPrice, noPrice, chartData } = useMarketPriceHistory(
+    BigInt(market.id),
+    marketContract?.address,
+    marketContract?.abi,
+  );
+  const { trendingMarkets } = useMarketStats(marketData);
   const priceChange =
-    market.priceHistory.length >= 2
-      ? market.priceHistory[market.priceHistory.length - 1].yes -
-        market.priceHistory[market.priceHistory.length - 2].yes
-      : 0;
+    chartData.length >= 2 ? chartData[chartData.length - 1].price - chartData[chartData.length - 2].price : 0;
 
-  const endDate = new Date(market.endDate);
-  const now = new Date();
-  const daysLeft = Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+  const now = BigInt(Math.floor(Date.now() / 1000));
+  const isClosed = now > market.endDate;
+  const resolved = market.status === 3;
+
+  const oneDayInSeconds = 86400n;
+  const diff = market.endDate > now ? market.endDate - now : 0n;
+  const isNewMarket = now - market.openDate < oneDayInSeconds && !isClosed;
+
+  const isTrending = trendingMarkets?.some(m => m.id === market.id);
+
+  const daysLeft = Number(diff / oneDayInSeconds);
   return (
     <Link href={`/market-detail/${market.id}`} className="block">
       <div className="glass-card-hover p-4 h-full flex flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-sm font-semibold leading-snug line-clamp-2 flex-1">{market.title}</h3>
           <div className="flex gap-1 shrink-0">
-            {market.trending && (
+            {isTrending && (
               <span className="flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                 <Zap className="h-3 w-3" />
                 Hot
               </span>
             )}
-            {market.isNew && (
+            {isNewMarket && (
               <span className="text-xs bg-accent text-accent-foreground px-2 py-0.5 rounded-full">New</span>
             )}
-            {market.resolved && (
-              <span className={`text-xs px-2 py-0.5 rounded-full ${market.outcome === "yes" ? "yes-pill" : "no-pill"}`}>
-                {market.outcome === "yes" ? "Yes ✓" : "No ✗"}
+            {resolved && (
+              <span className={`text-xs px-2 py-0.5 rounded-full ${market.outcome === 2 ? "yes-pill" : "no-pill"}`}>
+                {market.outcome === 2 ? "Yes ✓" : "No ✗"}
               </span>
             )}
           </div>
@@ -42,41 +61,43 @@ const MarketCard = ({ market }: MarketCardProps) => {
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             <BarChart2 className="h-3 w-3" />
-            {formatVolume(market.volume)}
+            {Number(market.yesShares + market.noShares)}
           </span>
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            {market.resolved ? "Resolved" : `${daysLeft}d left`}
+            {resolved || isClosed || daysLeft === 0 ? "Closed" : `${daysLeft}d left`}
           </span>
           <span className="px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground text-xs">
             {market.category}
           </span>
         </div>
 
-        {!market.resolved && (
-          <div className="mt-auto pt-2 border-t border-border">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="text-center">
-                  <div className="font-mono text-lg font-bold text-primary">{formatPrice(market.yesPrice)}</div>
-                  <div className="text-xs text-muted-foreground">Yes</div>
+        <div className="mt-auto pt-2 border-t border-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="text-center">
+                <div className="font-mono text-lg font-bold text-primary">
+                  {(Number(yesPrice) * nativeCurrencyPrice).toFixed(2)}
                 </div>
-                <div className="text-center">
-                  <div className="font-mono text-lg font-bold text-no">{formatPrice(market.noPrice)}</div>
-                  <div className="text-xs text-muted-foreground">No</div>
-                </div>
+                <div className="text-xs text-muted-foreground">Yes</div>
               </div>
-              {priceChange !== 0 && (
-                <div
-                  className={`flex items-center gap-1 text-xs font-mono ${priceChange > 0 ? "price-up" : "price-down"}`}
-                >
-                  <TrendingUp className={`h-3 w-3 ${priceChange < 0 ? "rotate-180" : ""}`} />
-                  {Math.abs(priceChange * 100).toFixed(1)}%
+              <div className="text-center">
+                <div className="font-mono text-lg font-bold text-no">
+                  {(Number(noPrice) * nativeCurrencyPrice).toFixed(2)}
                 </div>
-              )}
+                <div className="text-xs text-muted-foreground">No</div>
+              </div>
             </div>
+            {priceChange !== 0 && (
+              <div
+                className={`flex items-center gap-1 text-xs font-mono ${priceChange > 0 ? "price-up" : "price-down"}`}
+              >
+                <TrendingUp className={`h-3 w-3 ${priceChange < 0 ? "rotate-180" : ""}`} />
+                {Math.abs(priceChange * 100).toFixed(1)}%
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </Link>
   );

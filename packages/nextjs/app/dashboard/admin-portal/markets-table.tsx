@@ -102,7 +102,7 @@ const MarketTable = ({ data }: TableProps) => {
         cell: ({ row }) => {
           const volumeData = row.original.volume;
           const volumeInUs = parseFloat(formatEther(volumeData)) * nativeCurrencyPrice;
-          return <span className="font-mono text-xs">${volumeInUs}</span>;
+          return <span className="font-mono text-xs">${volumeInUs.toFixed(2)}</span>;
         },
       }),
       columnHelper.display({
@@ -186,7 +186,7 @@ const MarketTable = ({ data }: TableProps) => {
   });
 
   const categoryFilterValue = columnFilters.find(f => f.id === "category")?.value as string;
-  const categoryFilter = typeof categoryFilterValue === "number" ? CATEGORIES[categoryFilterValue] : "All";
+  const categoryFilter = typeof categoryFilterValue === "number" ? CATEGORIES[categoryFilterValue] : "All Categories";
   const statusFilter = (columnFilters.find(f => f.id === "status")?.value as string) || "all";
 
   return (
@@ -198,7 +198,7 @@ const MarketTable = ({ data }: TableProps) => {
           onValueChange={v =>
             setColumnFilters(prev => [
               ...prev.filter(f => f.id !== "category"),
-              ...(v === "All" ? [] : [{ id: "category", value: CATEGORIES.indexOf(v as any) }]),
+              ...(v.includes("All Categories") ? [] : [{ id: "category", value: CATEGORIES.indexOf(v as any) }]),
             ])
           }
         >
