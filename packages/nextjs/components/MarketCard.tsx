@@ -6,6 +6,7 @@ import { useScaffoldContract } from "~~/hooks/scaffold-eth";
 import { useMarketPriceHistory } from "~~/hooks/useMarketPriceHistory";
 import useMarketStats from "~~/hooks/useMarketStats";
 import useTransformedMarketData from "~~/hooks/useTransformedMarketData";
+import { CATEGORIES } from "~~/lib/markets";
 import { Market } from "~~/types/market";
 
 interface MarketCardProps {
@@ -30,7 +31,8 @@ const MarketCard = ({ market }: MarketCardProps) => {
 
   const oneDayInSeconds = 86400n;
   const diff = market.endDate > now ? market.endDate - now : 0n;
-  const isNewMarket = now - market.openDate < oneDayInSeconds && !isClosed;
+  const newMarketdiff = now - market.openDate;
+  const isNewMarket = newMarketdiff < oneDayInSeconds && !isClosed;
 
   const isTrending = trendingMarkets?.some(m => m.id === market.id);
 
@@ -61,14 +63,14 @@ const MarketCard = ({ market }: MarketCardProps) => {
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             <BarChart2 className="h-3 w-3" />
-            {Number(market.yesShares + market.noShares)}
+            {Number(market.yesShares + market.noShares) * nativeCurrencyPrice}
           </span>
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            {resolved || isClosed || daysLeft === 0 ? "Closed" : `${daysLeft}d left`}
+            {resolved || isClosed || daysLeft === 0 ? "Closed" : `${daysLeft} d left`}
           </span>
           <span className="px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground text-xs">
-            {market.category}
+            {CATEGORIES[market.category]}
           </span>
         </div>
 
@@ -77,13 +79,13 @@ const MarketCard = ({ market }: MarketCardProps) => {
             <div className="flex items-center gap-3">
               <div className="text-center">
                 <div className="font-mono text-lg font-bold text-primary">
-                  {(Number(yesPrice) * nativeCurrencyPrice).toFixed(2)}
+                  ${(Number(yesPrice) * nativeCurrencyPrice).toFixed(2)}
                 </div>
                 <div className="text-xs text-muted-foreground">Yes</div>
               </div>
               <div className="text-center">
                 <div className="font-mono text-lg font-bold text-no">
-                  {(Number(noPrice) * nativeCurrencyPrice).toFixed(2)}
+                  ${(Number(noPrice) * nativeCurrencyPrice).toFixed(2)}
                 </div>
                 <div className="text-xs text-muted-foreground">No</div>
               </div>

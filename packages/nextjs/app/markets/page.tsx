@@ -4,7 +4,9 @@ import { useMemo, useState } from "react";
 import MarketFilters, { SortDir, SortField } from "./_components/MarketFilters";
 import { NextPage } from "next";
 import MarketCard from "~~/components/MarketCard";
-import { Category, MOCK_MARKETS } from "~~/lib/markets";
+import useMarketStats from "~~/hooks/useMarketStats";
+import useTransformedMarketData from "~~/hooks/useTransformedMarketData";
+import { CATEGORIES, Category } from "~~/lib/markets";
 
 const Markets: NextPage = () => {
   const [category, setCategory] = useState<Category>("All Categories");
@@ -12,7 +14,8 @@ const Markets: NextPage = () => {
   const [sortField, setSortField] = useState<SortField>("volume");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [showResolved, setShowResolved] = useState(false);
-
+  const { data: marketData } = useTransformedMarketData();
+  const { resolvedMarkets, activeMarkets } = useMarketStats(marketData);
   const handleSortChange = (field: SortField) => {
     if (field === sortField) {
       setSortDir(d => (d === "desc" ? "asc" : "desc"));
@@ -23,33 +26,33 @@ const Markets: NextPage = () => {
   };
 
   const filtered = useMemo(() => {
-    let markets = MOCK_MARKETS;
+    let markets = marketData;
 
-    if (!showResolved) markets = markets.filter(m => !m.resolved);
-    if (category !== "All Categories") markets = markets.filter(m => m.category === category);
+    if (showResolved) markets = resolvedMarkets;
+    if (category !== "All Categories") markets = markets?.filter(m => CATEGORIES[m.category] === category);
     if (search) {
       const q = search.toLowerCase();
-      markets = markets.filter(m => m.title.toLowerCase().includes(q));
+      markets = markets?.filter(m => m.title.toLowerCase().includes(q));
     }
 
-    markets = [...markets].sort((a, b) => {
+    markets = markets?.sort((a, b) => {
       let av: number, bv: number;
       switch (sortField) {
         case "volume":
-          av = a.volume;
-          bv = b.volume;
+          av = Number(a.volume);
+          bv = Number(b.volume);
           break;
         case "liquidity":
-          av = a.liquidity;
-          bv = b.liquidity;
+          av = Number(a.liquidity);
+          bv = Number(b.liquidity);
           break;
         case "yesPrice":
-          av = a.yesPrice;
-          bv = b.yesPrice;
+          av = 2; //a.;
+          bv = 3; //b.yesPrice;
           break;
         case "endDate":
-          av = new Date(a.endDate).getTime();
-          bv = new Date(b.endDate).getTime();
+          av = new Date().getTime(); //Date(a.endDate).getTime();
+          bv = new Date().getTime(); ///Date(b.endDate).getTime();
           break;
         default:
           av = 0;
@@ -59,7 +62,7 @@ const Markets: NextPage = () => {
     });
 
     return markets;
-  }, [category, search, sortField, sortDir, showResolved]);
+  }, [marketData, showResolved, resolvedMarkets, category, search, sortField, sortDir]);
 
   return (
     <section>
@@ -67,7 +70,7 @@ const Markets: NextPage = () => {
         <div className="mb-6 md:mb-10">
           <h1 className="text-2xl font-bold mb-1">Discover Markets</h1>
           <p className="text-sm text-muted-foreground">
-            Browse {MOCK_MARKETS.length} markets across {7} categories
+            Browse {activeMarkets?.length} markets across {7} categories
           </p>
         </div>
 
@@ -84,12 +87,10 @@ const Markets: NextPage = () => {
         />
 
         <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map(market => (
-            <MarketCard key={market.id} market={market} />
-          ))}
+          {filtered?.map(market => <MarketCard key={market.id} market={market} />)}
         </div>
 
-        {filtered.length === 0 && (
+        {filtered?.length === 0 && (
           <div className="text-center py-16 text-muted-foreground">
             <p className="text-lg">No markets found</p>
             <p className="text-sm mt-1">Try adjusting your filters</p>

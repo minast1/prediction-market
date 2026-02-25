@@ -93,15 +93,15 @@ export const useMarketPriceHistory = (
   // 4. Calculate Chart Data
   // 4. Calculate Chart Data using LMSR
   const { chartData, currentPrice, yesPrice, noPrice } = useMemo(() => {
-    if (!market || !events.length) return { chartData: [], currentPrice: "0.50" };
+    if (!market || !events.length) return { chartData: [], currentPrice: "0.50", yesPrice: "0.50", noPrice: "0.50" };
 
     // Index 6 in your struct is liquidity (b)
     const { yesShares, noShares, liquidity } = market;
     const b = Number(liquidity);
 
     // Live Price Calculation
-    const curExpYes = Math.exp(Number(yesShares) / b);
-    const curExpNo = Math.exp(Number(noShares) / b);
+    const curExpYes = yesShares === 0n ? 0.5 : Math.exp(Number(yesShares) / b);
+    const curExpNo = noShares === 0n ? 0.5 : Math.exp(Number(noShares) / b);
     const totalExp = curExpYes + curExpNo;
 
     const livePrice = (curExpYes / totalExp).toFixed(4);
