@@ -257,3 +257,26 @@ export const getTrendingScore = (market: Market) => {
   // Score = Volume / Age (multiplied by 3600 to get "Volume per Hour")
   return (market.volume * 3600n) / effectiveAge;
 };
+
+/**
+ * Calculates how much ETH a user stands to win based on current pool weights.
+ * @param userStake The amount the user has bet (BigInt)
+ * @param userSide The side the user is on (1 for YES, 2 for NO)
+ * @param market The market object from your contract
+ */
+export const calculatePotentialPayout = (
+  userStake: bigint,
+  userSide: number,
+  market: Pick<Market, "yesShares" | "noShares">,
+) => {
+  if (userStake === 0n) return "0.00";
+  const isYes = userSide === 1;
+  const winnnigPool = isYes ? market.yesShares : market.noShares;
+  const loosingPool = isYes ? market.noShares : market.yesShares;
+
+  //If there are no losers yet, you should get your stake back
+  if (winnnigPool === 0n) return formatEther(userStake);
+  const profit = (userStake * loosingPool) / winnnigPool;
+  const totalPayoutWei = userStake + profit;
+  return formatEther(totalPayoutWei);
+};

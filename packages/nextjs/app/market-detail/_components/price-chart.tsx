@@ -2,7 +2,11 @@ import React from "react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 interface PriceChartProps {
-  data: { time: string; yes: number }[];
+  data: {
+    date: string;
+    price: number;
+    fullDate: string;
+  }[];
 }
 const PriceChart = ({ data }: PriceChartProps) => {
   return (
@@ -29,9 +33,15 @@ const PriceChart = ({ data }: PriceChartProps) => {
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 14%, 14%)" />
-          <XAxis dataKey="time" tick={{ fill: "hsl(215, 12%, 55%)", fontSize: 11 }} tickLine={false} axisLine={false} />
+          <XAxis
+            dataKey="fulldate"
+            tick={{ fill: "hsl(215, 12%, 55%)", fontSize: 11 }}
+            tickLine={false}
+            axisLine={false}
+          />
           <YAxis
             domain={[0, 1]}
+            dataKey={"price"}
             tick={{ fill: "hsl(215, 12%, 55%)", fontSize: 11 }}
             tickLine={false}
             axisLine={false}

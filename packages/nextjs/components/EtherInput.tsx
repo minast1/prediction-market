@@ -89,7 +89,7 @@ const EtherInput = ({
       {/* <span className="font-semibold">{usdMode ? "$" : "Ξ"}</span> */}
 
       {/* Main input */}
-      <InputGroup>
+      <InputGroup className="border border-border">
         <InputGroupInput
           value={displayValue}
           placeholder={placeholder}

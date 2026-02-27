@@ -78,13 +78,13 @@ const MarketCard = ({ market }: MarketCardProps) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="text-center">
-                <div className="font-mono text-lg font-bold text-primary">
+                <div className="font-mono text-base font-bold text-primary">
                   ${(Number(yesPrice) * nativeCurrencyPrice).toFixed(2)}
                 </div>
                 <div className="text-xs text-muted-foreground">Yes</div>
               </div>
               <div className="text-center">
-                <div className="font-mono text-lg font-bold text-no">
+                <div className="font-mono text-base font-bold text-no">
                   ${(Number(noPrice) * nativeCurrencyPrice).toFixed(2)}
                 </div>
                 <div className="text-xs text-muted-foreground">No</div>

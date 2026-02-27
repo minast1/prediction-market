@@ -2,12 +2,14 @@
 
 import React, { use } from "react";
 import Link from "next/link";
+import PriceChart from "../_components/price-chart";
 //import PriceChart from "../_components/price-chart";
 import TradePanel from "../_components/trade-panel";
 import { useFetchNativeCurrencyPrice } from "@scaffold-ui/hooks";
 import { ArrowLeft, BarChart2, Clock, Droplets, Users } from "lucide-react";
-import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
-import { formatPrice } from "~~/lib/markets";
+import { useScaffoldContract, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { useMarketPriceHistory } from "~~/hooks/useMarketPriceHistory";
+import { CATEGORIES, formatPrice } from "~~/lib/markets";
 
 export default function MarketDetailPage({ params }: { params: Promise<{ marketId: string }> }) {
   const { marketId } = use(params);
@@ -17,6 +19,8 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
     functionName: "getMarketInfo",
     args: [BigInt(marketId)],
   });
+  const { data: contractInfo } = useScaffoldContract({ contractName: "PredictionMarket" });
+  const { chartData } = useMarketPriceHistory(market?.id, contractInfo?.address, contractInfo?.abi);
 
   if (!market) {
     return (
@@ -30,9 +34,10 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
       </div>
     );
   }
-
-  const endDate = new Date(Number(market.marketClose) * 1000);
-  const daysLeft = Math.max(0, Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+  const now = BigInt(Math.floor(Date.now() / 1000));
+  const oneDayInSeconds = 86400n;
+  const diff = market.marketClose > now ? market.marketClose - now : 0n;
+  const daysLeft = Number(diff / oneDayInSeconds);
 
   return (
     <section>
@@ -48,7 +53,7 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-2">
             <span className="px-2 py-0.5 rounded bg-secondary text-secondary-foreground text-xs">
-              {market.category}
+              {CATEGORIES[market.category]}
             </span>
             {market.status == 3 && (
               <span className={market.outcome === 2 ? "yes-pill" : "no-pill"}>
@@ -74,7 +79,7 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
                 {
                   icon: Users,
                   label: "Traders",
-                  value: Math.floor(Number(market.yesShares + market.noShares) / 850).toLocaleString(),
+                  value: Math.floor(Number(market.totalParticipants)).toLocaleString(),
                 },
               ].map(s => (
                 <div key={s.label} className="glass-card p-3 text-center">
@@ -85,7 +90,7 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
               ))}
             </div>
 
-            {/* <PriceChart data={market.priceHistory} /> */}
+            <PriceChart data={chartData} />
 
             <div className="glass-card p-4">
               <h3 className="text-sm font-semibold mb-2">Resolution Criteria</h3>

@@ -46,7 +46,10 @@ const useMarketStats = (markets: Market[] | undefined) => {
         })
       : "0.00";
 
-    const toatlLiquidityWei = markets.reduce((acc, m) => acc + (m.liquidity || 0n), 0n);
+    const toatlLiquidityWei = markets.reduce((acc, m) => {
+      // console.log(`Market ${index} liquidity:`, m.liquidity?.toString());
+      return acc + (m.liquidity || 0n);
+    }, 0n);
     const liquidityEth = parseFloat(formatEther(toatlLiquidityWei));
     const totalLiquidityUSD = nativeCurrencyPrice
       ? (nativeCurrencyPrice * liquidityEth).toLocaleString(undefined, {
@@ -54,6 +57,7 @@ const useMarketStats = (markets: Market[] | undefined) => {
           maximumFractionDigits: 2,
         })
       : "0.00";
+
     return {
       activeMarkets: active,
       resolvedMarkets: resolved,
