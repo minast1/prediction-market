@@ -289,6 +289,12 @@ contract PredictionMarket {
         Market storage m = markets[id];
         if (block.timestamp > m.marketClose || m.status != Status.Open)
             revert MarketNotOpen();
+        Prediction storage pred = predictions[id][msg.sender];
+        if (isYes) {
+            if (pred.yesAmount < amount) revert InsufficientShares();
+        } else {
+            if (pred.noAmount < amount) revert InsufficientShares();
+        }
 
         // 1. Calculate Fair Payout via LMSR Cost Gap
         uint256 currentCost = _getCost(m.yesShares, m.noShares, m.liquidity);
@@ -299,10 +305,8 @@ contract PredictionMarket {
         uint256 payout = currentCost - nextCost;
         if (payout < minPayout) revert SlippageExceeded();
 
-        Prediction storage pred = predictions[id][msg.sender];
-
         if (isYes) {
-            if (pred.yesAmount < amount) revert InsufficientShares();
+            // if (pred.yesAmount < amount) revert InsufficientShares();
             pred.yesAmount -= amount; // Reduce prediction
             m.yesShares -= amount;
         } else {
