@@ -3,9 +3,10 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 
 interface PriceChartProps {
   data: {
-    date: string;
-    price: number;
-    fullDate: string;
+    time: string;
+    yes: number;
+    no: number;
+    yesProb: string;
   }[];
 }
 const PriceChart = ({ data }: PriceChartProps) => {
@@ -31,17 +32,15 @@ const PriceChart = ({ data }: PriceChartProps) => {
               <stop offset="5%" stopColor="hsl(152, 60%, 48%)" stopOpacity={0.3} />
               <stop offset="95%" stopColor="hsl(152, 60%, 48%)" stopOpacity={0} />
             </linearGradient>
+            <linearGradient id="noGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="hsl(0, 72%, 51%)" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="hsl(0, 72%, 51%)" stopOpacity={0} />
+            </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 14%, 14%)" />
-          <XAxis
-            dataKey="fulldate"
-            tick={{ fill: "hsl(215, 12%, 55%)", fontSize: 11 }}
-            tickLine={false}
-            axisLine={false}
-          />
+          <XAxis dataKey="time" tick={{ fill: "hsl(215, 12%, 55%)", fontSize: 11 }} tickLine={false} axisLine={false} />
           <YAxis
             domain={[0, 1]}
-            dataKey={"price"}
             tick={{ fill: "hsl(215, 12%, 55%)", fontSize: 11 }}
             tickLine={false}
             axisLine={false}
@@ -55,9 +54,13 @@ const PriceChart = ({ data }: PriceChartProps) => {
               fontSize: "12px",
             }}
             labelStyle={{ color: "hsl(215, 12%, 55%)" }}
-            //formatter={(value: number) => [`${Math.round(value * 100)}¢`, "Yes"]}
+            // formatter={(value: number, name: string) => [
+            //   `${Math.round(value * 100)}¢`,
+            //   name === "yes" ? "Yes" : "No",
+            // ]}
           />
           <Area type="monotone" dataKey="yes" stroke="hsl(152, 60%, 48%)" strokeWidth={2} fill="url(#yesGradient)" />
+          <Area type="monotone" dataKey="no" stroke="hsl(0, 72%, 51%)" strokeWidth={2} fill="url(#noGradient)" />
         </AreaChart>
       </ResponsiveContainer>
     </div>

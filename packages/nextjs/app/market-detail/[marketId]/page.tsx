@@ -20,7 +20,12 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
     args: [BigInt(marketId)],
   });
   const { data: contractInfo } = useScaffoldContract({ contractName: "PredictionMarket" });
-  const { chartData } = useMarketPriceHistory(market?.id, contractInfo?.address, contractInfo?.abi);
+  const { chartData } = useMarketPriceHistory(
+    market?.id,
+    contractInfo?.address,
+    contractInfo?.abi,
+    nativeCurrencyPrice,
+  );
 
   if (!market) {
     return (

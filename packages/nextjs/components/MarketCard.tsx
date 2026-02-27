@@ -16,14 +16,15 @@ const MarketCard = ({ market }: MarketCardProps) => {
   const { data: marketContract } = useScaffoldContract({ contractName: "PredictionMarket" });
   const { price: nativeCurrencyPrice } = useFetchNativeCurrencyPrice();
   const { data: marketData } = useTransformedMarketData();
-  const { yesPrice, noPrice, chartData } = useMarketPriceHistory(
+  const { chartData } = useMarketPriceHistory(
     BigInt(market.id),
     marketContract?.address,
     marketContract?.abi,
+    nativeCurrencyPrice,
   );
   const { trendingMarkets } = useMarketStats(marketData);
-  const priceChange =
-    chartData.length >= 2 ? chartData[chartData.length - 1].price - chartData[chartData.length - 2].price : 0;
+  const currentPrice = chartData.at(-1);
+  const priceChange = currentPrice ? currentPrice.yes - currentPrice.no : 0;
 
   const now = BigInt(Math.floor(Date.now() / 1000));
   const isClosed = now > market.endDate;
@@ -79,14 +80,12 @@ const MarketCard = ({ market }: MarketCardProps) => {
             <div className="flex items-center gap-3">
               <div className="text-center">
                 <div className="font-mono text-base font-bold text-primary">
-                  ${(Number(yesPrice) * nativeCurrencyPrice).toFixed(2)}
+                  ${Number(currentPrice?.yes).toFixed(2)}
                 </div>
                 <div className="text-xs text-muted-foreground">Yes</div>
               </div>
               <div className="text-center">
-                <div className="font-mono text-base font-bold text-no">
-                  ${(Number(noPrice) * nativeCurrencyPrice).toFixed(2)}
-                </div>
+                <div className="font-mono text-base font-bold text-no">${Number(currentPrice?.no).toFixed(2)}</div>
                 <div className="text-xs text-muted-foreground">No</div>
               </div>
             </div>

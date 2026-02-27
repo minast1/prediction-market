@@ -50,7 +50,10 @@ const TradePanel = ({ market }: TradePanelProps) => {
     contractName: "PredictionMarket",
   });
   const { price: ethPrice } = useFetchNativeCurrencyPrice();
-  const { currentPrice } = useMarketPriceHistory(market?.id, contract?.address, contract?.abi);
+  const { chartData } = useMarketPriceHistory(market?.id, contract?.address, contract?.abi, ethPrice);
+  console.log(chartData);
+
+  const currentPrices = chartData.at(-1);
 
   const potentialReturn = !market
     ? 0
@@ -138,7 +141,9 @@ const TradePanel = ({ market }: TradePanelProps) => {
       <div className="space-y-2 text-sm">
         <div className="flex justify-between text-muted-foreground">
           <span>Price</span>
-          <span className="font-mono">{(Number(currentPrice) * ethPrice).toFixed(2)}</span>
+          <span className="font-mono">
+            {(Number(side === "yes" ? currentPrices?.yes : currentPrices?.no) * ethPrice).toFixed(2)}
+          </span>
         </div>
         {/* <div className="flex justify-between text-muted-foreground">
           <span>Shares</span>

@@ -1,40 +1,35 @@
-import { useMemo } from "react";
-import { useScaffoldReadContract } from "./scaffold-eth";
 import { useQuery } from "@tanstack/react-query";
-import { Abi, decodeEventLog, parseAbiItem } from "viem";
+import { Abi, formatUnits, parseAbiItem } from "viem";
 import { usePublicClient, useWatchContractEvent } from "wagmi";
-import { queryClient } from "~~/components/ScaffoldEthAppWithProviders";
 
 const PRICEACTION_ABI = parseAbiItem(
-  `event PriceAction( uint256 indexed id, address indexed user, bool outcome, uint256 amount, uint256 timeStamp )`,
+  `event PriceUpdated(uint256 indexed id, address indexed user, bool outcome, uint256 amount, uint256 yesPrice, uint256 noPrice, uint256 timeStamp)`,
 );
 
-interface PriceActionArgs {
-  id: bigint;
-  user: `0x${string}`;
-  outcome: boolean;
-  amount: bigint;
-  timeStamp: bigint;
-}
+// interface PriceActionArgs {
+//   id: bigint;
+//   user: `0x${string}`;
+//   outcome: boolean;
+//   amount: bigint;
+//   timeStamp: bigint;
+// }
 
 export const useMarketPriceHistory = (
   marketId: bigint | undefined,
   contractAddress: `0x${string}` | undefined,
   contractAbi: Abi | undefined,
+  ethPrice: number | undefined,
 ) => {
   const publicClient = usePublicClient();
-  const isReady = !!marketId && !!publicClient && !!contractAddress && !!contractAbi;
+  const isReady = !!marketId && !!publicClient && !!contractAddress && !!contractAbi && !!ethPrice;
 
-  // 1. Fetch CURRENT state for the latest "live" price
-  const { data: market, refetch: refetchMarket } = useScaffoldReadContract({
-    contractName: "PredictionMarket",
-    functionName: "getMarketInfo",
-    args: [marketId],
-    query: { enabled: isReady },
-  });
-  const queryKey = ["marketPriceHistory", marketId?.toString(), contractAddress];
+  // const queryKey = ["marketPriceHistory", marketId?.toString(), contractAddress];
   // 2. Fetch Historical Logs for the Chart
-  const { data: events = [], isLoading } = useQuery({
+  const {
+    data: chartData = [],
+    isLoading,
+    refetch: refetchMarket,
+  } = useQuery({
     queryKey: ["marketPriceHistory", marketId?.toString(), contractAddress],
     enabled: isReady,
     staleTime: 60000, // Data stays fresh for 60 seconds
@@ -48,87 +43,49 @@ export const useMarketPriceHistory = (
         fromBlock: BigInt(process.env.NEXT_PUBLIC_DEPLOYMENT_BLOCK || 0), //use deployment block as fromBlock
       });
 
-      return logs
+      const mappedLogs = logs
         .map(log => {
-          try {
-            const decoded = decodeEventLog({
-              abi: contractAbi!,
-              data: log.data,
-              topics: log.topics,
-            });
-            return { ...log, decoded };
-          } catch (e) {
-            console.log(e);
-            return null;
-          }
+          const { yesPrice, noPrice, timeStamp } = log.args;
+          // Convert WAD (18 decimals) to a 0-1 decimal number
+          const yPrice = parseFloat(formatUnits(yesPrice!, 18));
+          const nPrice = parseFloat(formatUnits(noPrice!, 18));
+          return {
+            time: new Date(Number(timeStamp) * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+            yes: yPrice * ethPrice!,
+            no: nPrice * ethPrice!,
+            yesProb: (yPrice * 100).toFixed(1) + "%",
+          };
         })
-        .filter((log): log is Extract<typeof log, { decoded: { args: any } }> => log !== null)
-        .sort((a, b) => {
-          const argsA = a.decoded.args as unknown as PriceActionArgs;
-          const argsB = b.decoded.args as unknown as PriceActionArgs;
-          return Number(argsB.timeStamp - argsA.timeStamp);
-        });
+        .sort((a, b) => Number(a.time) - Number(b.time));
+
+      const startingPoint = {
+        time: "Start",
+        yes: 0.5,
+        no: 0.5,
+        yesProb: "50.0%",
+      };
+      return [startingPoint, ...mappedLogs];
     },
   });
 
-  // 3. Sync real-time updates
+  // // 3. Sync real-time updates
   useWatchContractEvent({
     address: contractAddress,
     abi: contractAbi,
-    eventName: "PriceAction",
+    eventName: "PriceUpdated",
     //fromBlock: BigInt(process.env.NEXT_PUBLIC_DEPLOYMENT_BLOCK || 0),
-    onLogs: newLogs => {
+    onLogs: () => {
       // Optimistically update the query cache instead of a full refetch
-      queryClient.setQueryData(queryKey, (old: any[] = []) => {
-        const enriched = newLogs.map(log => ({
-          ...log,
-          decoded: decodeEventLog({ abi: contractAbi!, data: log.data, topics: log.topics }),
-        }));
-        return [...old, ...enriched];
-      });
+      // queryClient.setQueryData(queryKey, (old: any[] = []) => {
+      //   const enriched = newLogs.map(log => ({
+      //     ...log,
+      //     decoded: decodeEventLog({ abi: contractAbi!, data: log.data, topics: log.topics }),
+      //   }));
+      //   return [...old, ...enriched];
+      // });
       refetchMarket(); // Refresh the on-chain share counts for current price
     },
   });
 
-  // 4. Calculate Chart Data
-  // 4. Calculate Chart Data using LMSR
-  const { chartData, currentPrice, yesPrice, noPrice } = useMemo(() => {
-    if (!market || !events.length) return { chartData: [], currentPrice: "0.50", yesPrice: "0.50", noPrice: "0.50" };
-
-    // Index 6 in your struct is liquidity (b)
-    const { yesShares, noShares, liquidity } = market;
-    const b = Number(liquidity);
-
-    // Live Price Calculation
-    const curExpYes = yesShares === 0n ? 0.5 : Math.exp(Number(yesShares) / b);
-    const curExpNo = noShares === 0n ? 0.5 : Math.exp(Number(noShares) / b);
-    const totalExp = curExpYes + curExpNo;
-
-    const livePrice = (curExpYes / totalExp).toFixed(4);
-    const liveYesPrice = (curExpYes / totalExp).toFixed(4);
-    const liveNoPrice = (curExpNo / totalExp).toFixed(4);
-
-    // Reconstruct Price History
-    let runningYes = 0n;
-    let runningNo = 0n;
-
-    const data = events.map(event => {
-      const { outcome, amount, timeStamp } = event.decoded.args as any;
-
-      if (outcome) runningYes += amount;
-      else runningNo += amount;
-
-      const p = Math.exp(Number(runningYes) / b) / (Math.exp(Number(runningYes) / b) + Math.exp(Number(runningNo) / b));
-
-      return {
-        date: new Date(Number(timeStamp) * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-        price: Number(p.toFixed(4)),
-        fullDate: new Date(Number(timeStamp) * 1000).toLocaleString(),
-      };
-    });
-
-    return { chartData: data, currentPrice: livePrice, yesPrice: liveYesPrice, noPrice: liveNoPrice };
-  }, [events, market]);
-
-  return { chartData, currentPrice, isLoading, yesPrice, noPrice };
+  return { chartData, isLoading };
 };
