@@ -1,22 +1,27 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0 <0.9.0;
+pragma solidity ^0.8.20;
 
 //import "forge-std/console.sol";
 import {ReceiverTemplate} from "../interfaces/ReceiverTemplate.sol";
+import {ud60x18, UD60x18} from "@prb/math/src/UD60x18.sol";
+
 /**
  * @title PredictionMarket
  * @dev A contract for prediction markets
  */
 contract PredictionMarket {
+    using {ud60x18} for uint256;
     // ===========================
     // ======== EVENTS ===========
     // ===========================
     event MarketCreated(uint256 indexed id, string question, uint256 endTime);
-    event PriceAction(
+    event PriceUpdated(
         uint256 indexed id,
         address indexed user,
         bool outcome,
         uint256 amount,
+        uint256 yesPrice,
+        uint256 noPrice,
         uint256 timeStamp
     );
     // event Sold(
@@ -26,7 +31,7 @@ contract PredictionMarket {
     //     uint256 amount,
     //     uint256 payout
     // );
-    event MarketDeleted(uint256 indexed marketId);
+
     event Resolved(uint256 id, bool outcome);
     event Claimed(uint256 id, address user, uint256 payout);
     /// @notice Emitted when a settlement response is received and processed.
@@ -47,7 +52,8 @@ contract PredictionMarket {
     // ===========================
 
     /// @notice Possible outcomes for a market. Also serves as a user's chosen prediction.
-    /// @dev `None` indicates no outcome yet or no prediction made, `Inconclusive` is used when AI response/confidence is insufficient. Users may only pass No or Yes.
+    /// @dev `None` indicates no outcome yet or no prediction made, `Inconclusive`
+    // is used when AI response/confidence is insufficient. Users may only pass No or Yes.
     enum Outcome {
         None,
         No,
@@ -87,8 +93,9 @@ contract PredictionMarket {
     error MarketAlreadySettled(uint256 settleTs);
     error InvalidOutcome();
     error InsufficientPayment(uint256 amt);
-
-    error MarketNotOpen(uint256 nowTs, uint256 closeTs);
+    error SlippageExceeded();
+    error TransferFailed();
+    error MarketNotOpen();
     error ManualSettlementNotAllowed(Status current);
     error AlreadyPredicted();
     error AmountZero();
@@ -96,7 +103,7 @@ contract PredictionMarket {
     error InvalidMarket(uint256 marketId);
 
     error NotSettledYet(Status current);
-    error InsufficientLotSize(uint256 amount);
+    error InsufficientShares();
     error AlreadyClaimed();
     error IncorrectPrediction();
     error SettlementNotRequested(Status current);
@@ -151,8 +158,50 @@ contract PredictionMarket {
     constructor() {}
 
     // ===========================
-    // ======== FUNCTIONS ========
+    // ======== AMM MATH =========
     // ===========================
+
+    /**
+     * @notice Calculates the LMSR cost: C = b * ln(e^(y/b) + e^(n/b))
+     */
+
+    function _getCost(
+        uint256 y,
+        uint256 n,
+        uint256 b
+    ) internal pure returns (uint256) {
+        if (b == 0) return 0;
+        UD60x18 bF = ud60x18(b);
+        // e^(y/b) + e^(n/b)
+        UD60x18 sumExp = (ud60x18(y).div(bF)).exp().add(
+            (ud60x18(n).div(bF)).exp()
+        );
+        // b * ln(sumExp)
+        return bF.mul(sumExp.ln()).unwrap();
+    }
+
+    /**
+     * @notice Calculates marginal prices (0 to 1) in 18-decimal precision.
+     */
+    function getPrices(
+        uint256 id
+    ) public view returns (uint256 yesPrice, uint256 noPrice) {
+        Market storage m = markets[id];
+        if (m.liquidity == 0) return (0.5e18, 0.5e18);
+
+        UD60x18 bF = ud60x18(m.liquidity);
+        UD60x18 eY = (ud60x18(m.yesShares).div(bF)).exp();
+        UD60x18 eN = (ud60x18(m.noShares).div(bF)).exp();
+        UD60x18 total = eY.add(eN);
+
+        yesPrice = eY.div(total).unwrap();
+        noPrice = eN.div(total).unwrap();
+    }
+
+    // ===========================
+    // ======== CORE LOGIC =======
+    // ===========================
+
     function createMarket(
         string calldata _question,
         uint256 _duration,
@@ -189,19 +238,14 @@ contract PredictionMarket {
      * @notice Purchase shares.
      * @dev Price (msg.value) is determined off-chain by CRE and sent as value.
      */
-    function buy(
-        uint256 id,
-        bool outcome,
-        uint256 quoteAmount
-    ) external payable {
+    function buy(uint256 id, bool isYes) external payable {
         Market storage m = markets[id];
 
-        if (m.marketClose < block.timestamp)
-            revert MarketNotOpen(block.timestamp, m.marketClose);
-        if (m.status != Status.Open) revert StatusNotOpen(m.status);
-        if (m.status == Status.Settled)
-            revert MarketAlreadySettled(m.settledAt);
-        if (msg.value < quoteAmount) revert InsufficientPayment(msg.value);
+        if (msg.value == 0) revert AmountZero();
+        // if (m.marketClose < block.timestamp)
+        //     revert MarketNotOpen(block.timestamp, m.marketClose);
+        if (block.timestamp > m.marketClose || m.status != Status.Open)
+            revert MarketNotOpen();
 
         Prediction storage pred = predictions[id][msg.sender];
 
@@ -209,10 +253,9 @@ contract PredictionMarket {
             m.totalParticipants++;
         }
 
-        if (outcome) {
+        if (isYes) {
             m.yesShares += msg.value;
             pred.yesAmount += msg.value;
-
             pred.lastSide = Outcome.Yes;
         } else {
             m.noShares += msg.value;
@@ -221,7 +264,16 @@ contract PredictionMarket {
         }
         pred.lastUpdated = block.timestamp;
 
-        emit PriceAction(id, msg.sender, outcome, msg.value, block.timestamp);
+        (uint256 yP, uint256 nP) = getPrices(id);
+        emit PriceUpdated(
+            id,
+            msg.sender,
+            isYes,
+            msg.value,
+            yP,
+            nP,
+            block.timestamp
+        );
     }
 
     /**
@@ -230,27 +282,31 @@ contract PredictionMarket {
      */
     function sell(
         uint256 id,
-        bool outcome,
+        bool isYes,
         uint256 amount,
         uint256 minPayout
     ) external {
         Market storage m = markets[id];
-        if (amount == 0) revert AmountZero();
-        if (m.marketClose < block.timestamp)
-            revert MarketNotOpen(block.timestamp, m.marketClose);
-        if (m.status != Status.Open) revert StatusNotOpen(m.status);
-        if (m.status == Status.Settled)
-            revert MarketAlreadySettled(m.settledAt);
-        if (amount <= 0) revert InsufficientLotSize(amount);
+        if (block.timestamp > m.marketClose || m.status != Status.Open)
+            revert MarketNotOpen();
+
+        // 1. Calculate Fair Payout via LMSR Cost Gap
+        uint256 currentCost = _getCost(m.yesShares, m.noShares, m.liquidity);
+        uint256 nextYes = isYes ? m.yesShares - amount : m.yesShares;
+        uint256 nextNo = !isYes ? m.noShares - amount : m.noShares;
+        uint256 nextCost = _getCost(nextYes, nextNo, m.liquidity);
+
+        uint256 payout = currentCost - nextCost;
+        if (payout < minPayout) revert SlippageExceeded();
 
         Prediction storage pred = predictions[id][msg.sender];
 
-        if (outcome) {
-            require(pred.yesAmount >= amount, "Insufficient YES shares");
+        if (isYes) {
+            if (pred.yesAmount < amount) revert InsufficientShares();
             pred.yesAmount -= amount; // Reduce prediction
             m.yesShares -= amount;
         } else {
-            require(pred.noAmount >= amount, "Insufficient NO shares");
+            if (pred.noAmount < amount) revert InsufficientShares();
             pred.noAmount -= amount; // Reduce prediction
             m.noShares -= amount;
         }
@@ -263,10 +319,19 @@ contract PredictionMarket {
 
         pred.lastUpdated = block.timestamp;
 
-        (bool success, ) = payable(msg.sender).call{value: minPayout}("");
-        require(success, "ETH transfer failed");
+        (bool success, ) = payable(msg.sender).call{value: payout}("");
+        if (!success) revert TransferFailed();
 
-        emit PriceAction(id, msg.sender, outcome, amount, block.timestamp);
+        (uint256 yP, uint256 nP) = getPrices(id);
+        emit PriceUpdated(
+            id,
+            msg.sender,
+            isYes,
+            amount,
+            yP,
+            nP,
+            block.timestamp
+        );
     }
 
     /// @notice Request (CRE) to settle a market.
@@ -339,7 +404,7 @@ contract PredictionMarket {
         Market storage m = markets[marketId];
         Prediction storage pred = predictions[marketId][msg.sender];
         if (m.status != Status.Settled) revert MarketNotSettled(m.status);
-        if (m.settledAt < block.timestamp) revert MarketNotSettled(m.status);
+
         if (pred.claimed) revert AlreadyClaimed();
         if (m.outcome != pred.lastSide) revert IncorrectPrediction();
 
@@ -369,7 +434,7 @@ contract PredictionMarket {
         pred.lastSide = Outcome.None;
         pred.claimed = true;
         (bool success, ) = payable(msg.sender).call{value: totalPayout}("");
-        require(success, "Claim failed");
+        if (!success) revert TransferFailed();
 
         emit Claimed(marketId, msg.sender, totalPayout);
     }
