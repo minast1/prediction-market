@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useFetchNativeCurrencyPrice, useWatchBalance } from "@scaffold-ui/hooks";
 import { parseEther } from "viem";
 import { useAccount } from "wagmi";
-import { useScaffoldContract, useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { useScaffoldContract, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 import { useMarketPriceHistory } from "~~/hooks/useMarketPriceHistory";
 import { calculatePotentialPayout } from "~~/lib/markets";
 
@@ -55,25 +55,25 @@ const TradePanel = ({ market }: TradePanelProps) => {
   const potentialReturn = !market
     ? 0
     : Number(calculatePotentialPayout(parseEther(amount), side === "yes" ? 1 : 0, market));
-  const { writeContractAsync: writeAsync } = useScaffoldWriteContract({ contractName: "PredictionMarket" });
+  // const { writeContractAsync: writeAsync } = useScaffoldWriteContract({ contractName: "PredictionMarket" });
 
-  const handleTrade = async () => {
-    const amountWei = parseEther(amount);
-    const sideInt = side === "yes" ? true : false;
-    if (!market) return;
-    if (tab === "buy") {
-      await writeAsync({
-        functionName: "buy",
-        args: [BigInt(market?.id), sideInt, BigInt(currentPrice)],
-        value: amountWei,
-      });
-    } else {
-      await writeAsync({
-        functionName: "sell",
-        args: [BigInt(market.id), sideInt, amountWei, BigInt(potentialReturn)],
-      });
-    }
-  };
+  // const handleTrade = async () => {
+  //   const amountWei = parseEther(amount);
+  //   const sideInt = side === "yes" ? true : false;
+  //   if (!market) return;
+  //   if (tab === "buy") {
+  //     await writeAsync({
+  //       functionName: "buy",
+  //       args: [BigInt(market?.id), sideInt, BigInt(currentPrice)],
+  //       value: amountWei,
+  //     });
+  //   } else {
+  //     await writeAsync({
+  //       functionName: "sell",
+  //       args: [BigInt(market.id), sideInt, amountWei, BigInt(potentialReturn)],
+  //     });
+  //   }
+  // };
   return (
     <div className="glass-card p-4 space-y-4">
       <div className="flex rounded-lg bg-secondary p-0.5">
@@ -154,7 +154,7 @@ const TradePanel = ({ market }: TradePanelProps) => {
 
       <button
         disabled={!amount || market?.status === 3 || isOverBalance}
-        onClick={handleTrade}
+        // onClick={handleTrade}
         className={`w-full rounded-lg py-3 text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
           side === "yes"
             ? "bg-primary text-primary-foreground hover:brightness-110"
