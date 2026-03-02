@@ -1,11 +1,12 @@
 import React from "react";
 import Link from "next/link";
+import { Badge } from "./ui/badge";
 import { useFetchNativeCurrencyPrice } from "@scaffold-ui/hooks";
 import { BarChart2, Clock, TrendingUp, Zap } from "lucide-react";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 import useMarketStats from "~~/hooks/useMarketStats";
 import useTransformedMarketData from "~~/hooks/useTransformedMarketData";
-import { CATEGORIES, formatPrice } from "~~/lib/markets";
+import { CATEGORIES, formatPrice, timeLeftLabel } from "~~/lib/markets";
 import { Market } from "~~/types/market";
 
 interface MarketCardProps {
@@ -39,7 +40,9 @@ const MarketCard = ({ market }: MarketCardProps) => {
 
   const isTrending = trendingMarkets?.some(m => m.id === market.id);
 
-  const daysLeft = Number(diff / oneDayInSeconds);
+  const isEndingSoon = diff > 0n && diff < 3600n;
+  const daysLeft = timeLeftLabel(diff);
+  console.log(diff);
   return (
     <Link href={`/market-detail/${market.id}`} className="block">
       <div className="glass-card-hover p-4 h-full flex flex-col gap-3">
@@ -68,10 +71,15 @@ const MarketCard = ({ market }: MarketCardProps) => {
             <BarChart2 className="h-3 w-3" />
             {Number(market.yesShares + market.noShares) * nativeCurrencyPrice}
           </span>
-          <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            {resolved || isClosed || daysLeft === 0 ? "Closed" : `${daysLeft} d left`}
-          </span>
+          {isEndingSoon ? (
+            <Badge variant="destructive">Ending Soon</Badge>
+          ) : (
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {resolved || isClosed ? "Closed" : daysLeft}
+            </span>
+          )}
+
           <span className="px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground text-xs">
             {CATEGORIES[market.category]}
           </span>

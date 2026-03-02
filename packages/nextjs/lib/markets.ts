@@ -280,3 +280,24 @@ export const calculatePotentialPayout = (
   const totalPayoutWei = userStake + profit;
   return formatEther(totalPayoutWei);
 };
+
+export const timeLeftLabel = (diff: bigint) => {
+  let timeLeftLabel = "";
+
+  if (diff === 0n) {
+    timeLeftLabel = "Ended";
+  } else if (diff >= 86400n) {
+    // More than a day
+    const days = Number(diff / 86400n);
+    timeLeftLabel = `${days} day${days > 1 ? "s" : ""} left`;
+  } else if (diff >= 3600n) {
+    // Less than a day, more than an hour
+    const hours = Number(diff / 3600n);
+    timeLeftLabel = `${hours}h left`;
+  } else {
+    // Less than an hour
+    const mins = Number(diff / 60n);
+    timeLeftLabel = `${mins > 0 ? mins : "< 1"}m left`;
+  }
+  return timeLeftLabel;
+};
