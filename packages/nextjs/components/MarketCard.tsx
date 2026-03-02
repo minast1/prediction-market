@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Badge } from "./ui/badge";
 import { useFetchNativeCurrencyPrice } from "@scaffold-ui/hooks";
@@ -15,7 +15,15 @@ interface MarketCardProps {
 const MarketCard = ({ market }: MarketCardProps) => {
   const { price: nativeCurrencyPrice } = useFetchNativeCurrencyPrice();
   const { data: marketData } = useTransformedMarketData();
+  const [now, setNow] = useState(BigInt(Math.floor(Date.now() / 1000)));
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(BigInt(Math.floor(Date.now() / 1000)));
+    }, 1000); // Update every second
+
+    return () => clearInterval(interval);
+  }, []);
   const { trendingMarkets } = useMarketStats(marketData);
   const { data: currentPrice } = useScaffoldReadContract({
     contractName: "PredictionMarket",
@@ -29,7 +37,7 @@ const MarketCard = ({ market }: MarketCardProps) => {
   const noPrice = currentPrice ? currentPrice[1] : 0n;
   const priceChange = Number(yesPrice) - Number(noPrice);
 
-  const now = BigInt(Math.floor(Date.now() / 1000));
+  //const now = BigInt(Math.floor(Date.now() / 1000));
   const isClosed = now > market.endDate;
   const resolved = market.status === 3;
 

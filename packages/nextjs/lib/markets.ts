@@ -287,17 +287,17 @@ export const timeLeftLabel = (diff: bigint) => {
   if (diff === 0n) {
     timeLeftLabel = "Ended";
   } else if (diff >= 86400n) {
-    // More than a day
     const days = Number(diff / 86400n);
-    timeLeftLabel = `${days} day${days > 1 ? "s" : ""} left`;
+    timeLeftLabel = `${days}d left`;
   } else if (diff >= 3600n) {
-    // Less than a day, more than an hour
+    // 🚀 The Fix: Calculate Hours AND Minutes
     const hours = Number(diff / 3600n);
-    timeLeftLabel = `${hours}h left`;
+    const mins = Number((diff % 3600n) / 60n); // Get the remainder minutes
+
+    timeLeftLabel = `${hours}h ${mins}m left`;
   } else {
-    // Less than an hour
     const mins = Number(diff / 60n);
-    timeLeftLabel = `${mins > 0 ? mins : "< 1"}m left`;
+    timeLeftLabel = `${mins}m left`;
   }
   return timeLeftLabel;
 };
