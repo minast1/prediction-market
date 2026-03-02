@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useFetchNativeCurrencyPrice, useWatchBalance } from "@scaffold-ui/hooks";
 import { formatEther, parseEther } from "viem";
 import { useAccount } from "wagmi";
+import { Button } from "~~/components/ui/button";
 import { Spinner } from "~~/components/ui/spinner";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import useCalculateSellPayout from "~~/hooks/useCalculateSellPayout";
@@ -188,7 +189,7 @@ const TradePanel = ({ market }: TradePanelProps) => {
         </div>
       </div>
 
-      <button
+      <Button
         disabled={!amount || market?.status === 3 || isOverBalance}
         onClick={handleTrade}
         className={`w-full rounded-lg py-3 text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
@@ -207,7 +208,7 @@ const TradePanel = ({ market }: TradePanelProps) => {
         ) : (
           `${tab === "buy" ? "Buy" : "Sell"} ${side === "yes" ? "Yes" : "No"}`
         )}
-      </button>
+      </Button>
     </div>
   );
 };
