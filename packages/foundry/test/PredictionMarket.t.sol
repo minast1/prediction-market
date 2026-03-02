@@ -189,6 +189,19 @@ contract PredictionMarketTest is Test {
         assertEq(m.totalParticipants, 1);
     }
 
+    function testParticipantReentry() public {
+        uint256 marketId = _createMarket();
+        vm.startPrank(alice);
+        market.buy{value: 1 ether}(marketId, true);
+        market.sell(marketId, true, 1 ether, 0);
+        PredictionMarket.Market memory m = market.getMarketInfo(marketId);
+        assertEq(m.totalParticipants, 0);
+
+        market.buy{value: 2 ether}(marketId, true);
+        PredictionMarket.Market memory m2 = market.getMarketInfo(marketId);
+        assertEq(m2.totalParticipants, 1);
+    }
+
     function testSellYes() public {
         uint256 marketId = _createMarket();
 

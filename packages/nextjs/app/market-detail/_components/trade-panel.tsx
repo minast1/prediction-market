@@ -77,10 +77,19 @@ const TradePanel = ({ market }: TradePanelProps) => {
         },
       );
     } else {
-      await writeAsync({
-        functionName: "sell",
-        args: [BigInt(market.id), sideInt, amountWei, minPayout],
-      });
+      await writeAsync(
+        {
+          functionName: "sell",
+          args: [BigInt(market.id), sideInt, amountWei, minPayout],
+        },
+        {
+          onBlockConfirmation: () => {
+            setIsLoading(false);
+            setAmount("");
+            setTab("buy");
+          },
+        },
+      );
     }
   };
   return (
@@ -145,12 +154,12 @@ const TradePanel = ({ market }: TradePanelProps) => {
           <p className="mt-1 text-xs text-destructive">Insufficient balance</p>
         ) : isOverYesPoolSize && side === "yes" ? (
           <p className="mt-1 text-[10px] text-destructive">
-            Insufficient Pool Depth: Trying to sell ${Number(amount).toFixed(2)} but only{" "}
+            Insufficient Pool Depth: Trying to sell {Number(amount).toFixed(2)} shares but only{" "}
             {formatEther(userPredictions.yesAmount)} available.
           </p>
         ) : isOverNoPoolSize && side === "no" ? (
           <p className="mt-1 text-[11px] text-destructive">
-            Insufficient Pool Depth: Trying to sell ${Number(amount).toFixed(2)} but only{" "}
+            Insufficient Pool Depth: Trying to sell {Number(amount).toFixed(2)} shares but only{" "}
             {formatEther(userPredictions.noAmount)} available.
           </p>
         ) : null}

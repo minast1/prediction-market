@@ -319,9 +319,10 @@ contract PredictionMarket {
         if (pred.yesAmount == 0 && pred.noAmount == 0) {
             pred.lastSide = Outcome.None;
             if (m.totalParticipants > 0) m.totalParticipants--;
+            pred.lastUpdated = 0; //TO TEST THIS
+        } else {
+            pred.lastUpdated = block.timestamp;
         }
-
-        pred.lastUpdated = block.timestamp;
 
         (bool success, ) = payable(msg.sender).call{value: payout}("");
         if (!success) revert TransferFailed();
