@@ -1,82 +1,88 @@
 import React, { useState } from "react";
 import { useFetchNativeCurrencyPrice, useWatchBalance } from "@scaffold-ui/hooks";
-import { parseEther } from "viem";
+import { formatEther, parseEther } from "viem";
 import { useAccount } from "wagmi";
-import { useScaffoldContract, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
-import { useMarketPriceHistory } from "~~/hooks/useMarketPriceHistory";
-import { calculatePotentialPayout } from "~~/lib/markets";
+import { Spinner } from "~~/components/ui/spinner";
+import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import useCalculateSellPayout from "~~/hooks/useCalculateSellPayout";
+import { calculatePotentialPayout, formatPrice } from "~~/lib/markets";
+import { MarketsReturnType } from "~~/types/market";
 
 interface TradePanelProps {
-  market:
-    | {
-        question: string;
-        marketOpen: bigint;
-        marketClose: bigint;
-        category: number;
-        outcome: number;
-        id: bigint;
-        status: number;
-        settledAt: bigint;
-        confidenceBps: number;
-        yesShares: bigint;
-        noShares: bigint;
-        criteria: string;
-        liquidity: bigint;
-        resolutionChannel: number;
-        totalParticipants: bigint;
-      }
-    | undefined;
+  market: MarketsReturnType | undefined;
 }
 const TradePanel = ({ market }: TradePanelProps) => {
   const [side, setSide] = useState<"yes" | "no">("yes");
   const [amount, setAmount] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [tab, setTab] = useState<"buy" | "sell">("buy");
   const { address } = useAccount();
   const { data: balance } = useWatchBalance({ address });
-  const { data: userPredictions } = useScaffoldReadContract({
+
+  const { data: currentPrice } = useScaffoldReadContract({
     contractName: "PredictionMarket",
-    functionName: "getUserPredictions",
-    args: [market?.id],
+    functionName: "getPrices",
+    args: [BigInt(market!.id)],
     query: {
       enabled: !!market,
     },
   });
 
+  const yesPrice = currentPrice ? currentPrice[0] : 0n;
+  const noPrice = currentPrice ? currentPrice[1] : 0n;
+
+  const { data: userPredictions } = useScaffoldReadContract({
+    contractName: "PredictionMarket",
+    functionName: "getUserPredictions",
+    args: [BigInt(market!.id), address],
+    query: {
+      enabled: !!market,
+    },
+  });
+
+  const { minPayout } = useCalculateSellPayout(market, side === "yes" ? true : false, parseEther(amount));
   const isOverBalance = amount && balance ? parseEther(amount) >= balance.value : false;
+  const isOverYesPoolSize =
+    tab === "sell" && userPredictions && parseEther(amount) > userPredictions.yesAmount && side === "yes";
+  const isOverNoPoolSize =
+    tab === "sell" && userPredictions && parseEther(amount) > userPredictions.noAmount && side === "no";
   //const hasPartaken = userPredictions?.lastUpdated !== BigInt(0);
   const hasShares = userPredictions?.yesAmount !== BigInt(0);
   //const claimed = userPredictions?.claimed === true;
-  const { data: contract } = useScaffoldContract({
-    contractName: "PredictionMarket",
-  });
+  ///sconsole.log({ isOverYesPoolSize, isOverNoPoolSize });
   const { price: ethPrice } = useFetchNativeCurrencyPrice();
-  const { chartData } = useMarketPriceHistory(market?.id, contract?.address, contract?.abi, ethPrice);
-  console.log(chartData);
-
-  const currentPrices = chartData.at(-1);
 
   const potentialReturn = !market
     ? 0
     : Number(calculatePotentialPayout(parseEther(amount), side === "yes" ? 1 : 0, market));
-  // const { writeContractAsync: writeAsync } = useScaffoldWriteContract({ contractName: "PredictionMarket" });
+  const { writeContractAsync: writeAsync, isMining } = useScaffoldWriteContract({ contractName: "PredictionMarket" });
 
-  // const handleTrade = async () => {
-  //   const amountWei = parseEther(amount);
-  //   const sideInt = side === "yes" ? true : false;
-  //   if (!market) return;
-  //   if (tab === "buy") {
-  //     await writeAsync({
-  //       functionName: "buy",
-  //       args: [BigInt(market?.id), sideInt, BigInt(currentPrice)],
-  //       value: amountWei,
-  //     });
-  //   } else {
-  //     await writeAsync({
-  //       functionName: "sell",
-  //       args: [BigInt(market.id), sideInt, amountWei, BigInt(potentialReturn)],
-  //     });
-  //   }
-  // };
+  const handleTrade = async () => {
+    setIsLoading(true);
+    const amountWei = parseEther(amount);
+    const sideInt = side === "yes" ? true : false;
+    if (!market) return;
+    if (tab === "buy") {
+      await writeAsync(
+        {
+          functionName: "buy",
+          args: [BigInt(market?.id), sideInt],
+          value: amountWei,
+        },
+        {
+          onBlockConfirmation: () => {
+            setIsLoading(false);
+            setAmount("");
+          },
+        },
+      );
+    } else {
+      await writeAsync({
+        functionName: "sell",
+        args: [BigInt(market.id), sideInt, amountWei, minPayout],
+      });
+    }
+  };
   return (
     <div className="glass-card p-4 space-y-4">
       <div className="flex rounded-lg bg-secondary p-0.5">
@@ -130,19 +136,31 @@ const TradePanel = ({ market }: TradePanelProps) => {
           value={amount}
           onChange={e => setAmount(e.target.value)}
           className={`w-full rounded-lg border bg-secondary px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 ${
-            isOverBalance
+            isOverBalance || isOverYesPoolSize || isOverNoPoolSize
               ? "border-destructive focus:ring-destructive text-destructive"
               : "border-border focus:ring-primary"
           }`}
         />
-        {isOverBalance && <p className="mt-1 text-[10px] text-destructive">Insufficient balance</p>}
+        {isOverBalance ? (
+          <p className="mt-1 text-xs text-destructive">Insufficient balance</p>
+        ) : isOverYesPoolSize && side === "yes" ? (
+          <p className="mt-1 text-[10px] text-destructive">
+            Insufficient Pool Depth: Trying to sell ${Number(amount).toFixed(2)} but only{" "}
+            {formatEther(userPredictions.yesAmount)} available.
+          </p>
+        ) : isOverNoPoolSize && side === "no" ? (
+          <p className="mt-1 text-[11px] text-destructive">
+            Insufficient Pool Depth: Trying to sell ${Number(amount).toFixed(2)} but only{" "}
+            {formatEther(userPredictions.noAmount)} available.
+          </p>
+        ) : null}
       </div>
 
       <div className="space-y-2 text-sm">
         <div className="flex justify-between text-muted-foreground">
           <span>Price</span>
           <span className="font-mono">
-            {(Number(side === "yes" ? currentPrices?.yes : currentPrices?.no) * ethPrice).toFixed(2)}
+            {side === "yes" ? formatPrice(yesPrice, ethPrice) : side === "no" ? formatPrice(noPrice, ethPrice) : "—"}
           </span>
         </div>
         {/* <div className="flex justify-between text-muted-foreground">
@@ -150,25 +168,36 @@ const TradePanel = ({ market }: TradePanelProps) => {
           <span className="font-mono">{shares > 0 ? shares.toFixed(2) : "—"}</span>
         </div> */}
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Potential return</span>
+          <span className="text-muted-foreground">{tab === "sell" ? "Minimum payout" : "Potential return"}</span>
           <span className="font-mono text-primary font-semibold">
-            {potentialReturn > 0 ? `+$${(ethPrice * potentialReturn).toFixed(2)}` : "—"}
+            {potentialReturn > 0 && tab === "buy"
+              ? `+$${(ethPrice * potentialReturn).toFixed(2)}`
+              : tab === "sell"
+                ? `-$${formatPrice(minPayout, ethPrice)}`
+                : "—"}
           </span>
         </div>
       </div>
 
       <button
         disabled={!amount || market?.status === 3 || isOverBalance}
-        // onClick={handleTrade}
+        onClick={handleTrade}
         className={`w-full rounded-lg py-3 text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
           side === "yes"
             ? "bg-primary text-primary-foreground hover:brightness-110"
             : "bg-no text-no-foreground hover:brightness-110"
         }`}
       >
-        {market?.status === 3
-          ? "Market Resolved"
-          : `${tab === "buy" ? "Buy" : "Sell"} ${side === "yes" ? "Yes" : "No"}`}
+        {isLoading || isMining ? (
+          <>
+            Loading..
+            <Spinner className="mr-2" />
+          </>
+        ) : market?.status === 3 ? (
+          "Market Resolved"
+        ) : (
+          `${tab === "buy" ? "Buy" : "Sell"} ${side === "yes" ? "Yes" : "No"}`
+        )}
       </button>
     </div>
   );

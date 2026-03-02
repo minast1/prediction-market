@@ -115,7 +115,21 @@ contract PredictionMarketTest is Test {
     // // -------------------------
     // // BUY
     // // -------------------------
-
+    function testItUpdatesPredictionValuesOnBuy() public {
+        uint256 marketId = _createMarket();
+        vm.startPrank(alice);
+        market.buy{value: 1 ether}(marketId, true);
+        PredictionMarket.Prediction memory prediction = market.getPrediction(
+            marketId
+        );
+        assertEq(prediction.yesAmount, 1 ether);
+        assertEq(
+            uint8(prediction.lastSide),
+            uint8(PredictionMarket.Outcome.Yes)
+        );
+        assertEq(prediction.noAmount, 0);
+        vm.stopPrank();
+    }
     function testBuyYes() public {
         uint256 marketId = _createMarket();
         vm.startPrank(alice);

@@ -30,9 +30,9 @@ export const useMarketPriceHistory = (
     isLoading,
     refetch: refetchMarket,
   } = useQuery({
-    queryKey: ["marketPriceHistory", marketId?.toString(), contractAddress],
+    queryKey: ["marketPriceHistory", marketId?.toString(), contractAddress, publicClient, contractAbi, ethPrice],
     enabled: isReady,
-    staleTime: 60000, // Data stays fresh for 60 seconds
+    //staleTime: 60000, // Data stays fresh for 60 seconds
     // gcTime: 1000 * 60 * 60, // Keep in cache for 1 hour
     queryFn: async () => {
       if (!marketId || !contractAddress || !publicClient) return [];
@@ -42,7 +42,7 @@ export const useMarketPriceHistory = (
         args: { id: marketId },
         fromBlock: BigInt(process.env.NEXT_PUBLIC_DEPLOYMENT_BLOCK || 0), //use deployment block as fromBlock
       });
-
+      console.log({ logs });
       const mappedLogs = logs
         .map(log => {
           const { yesPrice, noPrice, timeStamp } = log.args;
@@ -60,8 +60,8 @@ export const useMarketPriceHistory = (
 
       const startingPoint = {
         time: "Start",
-        yes: 0.5,
-        no: 0.5,
+        yes: 0.5 * ethPrice!,
+        no: 0.5 * ethPrice!,
         yesProb: "50.0%",
       };
       return [startingPoint, ...mappedLogs];
@@ -73,8 +73,10 @@ export const useMarketPriceHistory = (
     address: contractAddress,
     abi: contractAbi,
     eventName: "PriceUpdated",
+    fromBlock: 0n,
     //fromBlock: BigInt(process.env.NEXT_PUBLIC_DEPLOYMENT_BLOCK || 0),
-    onLogs: () => {
+    onLogs: log => {
+      console.log(log);
       // Optimistically update the query cache instead of a full refetch
       // queryClient.setQueryData(queryKey, (old: any[] = []) => {
       //   const enriched = newLogs.map(log => ({

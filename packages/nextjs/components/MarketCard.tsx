@@ -2,29 +2,31 @@ import React from "react";
 import Link from "next/link";
 import { useFetchNativeCurrencyPrice } from "@scaffold-ui/hooks";
 import { BarChart2, Clock, TrendingUp, Zap } from "lucide-react";
-import { useScaffoldContract } from "~~/hooks/scaffold-eth";
-import { useMarketPriceHistory } from "~~/hooks/useMarketPriceHistory";
+import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 import useMarketStats from "~~/hooks/useMarketStats";
 import useTransformedMarketData from "~~/hooks/useTransformedMarketData";
-import { CATEGORIES } from "~~/lib/markets";
+import { CATEGORIES, formatPrice } from "~~/lib/markets";
 import { Market } from "~~/types/market";
 
 interface MarketCardProps {
   market: Market;
 }
 const MarketCard = ({ market }: MarketCardProps) => {
-  const { data: marketContract } = useScaffoldContract({ contractName: "PredictionMarket" });
   const { price: nativeCurrencyPrice } = useFetchNativeCurrencyPrice();
   const { data: marketData } = useTransformedMarketData();
-  const { chartData } = useMarketPriceHistory(
-    BigInt(market.id),
-    marketContract?.address,
-    marketContract?.abi,
-    nativeCurrencyPrice,
-  );
+
   const { trendingMarkets } = useMarketStats(marketData);
-  const currentPrice = chartData.at(-1);
-  const priceChange = currentPrice ? currentPrice.yes - currentPrice.no : 0;
+  const { data: currentPrice } = useScaffoldReadContract({
+    contractName: "PredictionMarket",
+    functionName: "getPrices",
+    args: [BigInt(market.id)],
+    query: {
+      enabled: !!market,
+    },
+  });
+  const yesPrice = currentPrice ? currentPrice[0] : 0n;
+  const noPrice = currentPrice ? currentPrice[1] : 0n;
+  const priceChange = Number(yesPrice) - Number(noPrice);
 
   const now = BigInt(Math.floor(Date.now() / 1000));
   const isClosed = now > market.endDate;
@@ -80,12 +82,14 @@ const MarketCard = ({ market }: MarketCardProps) => {
             <div className="flex items-center gap-3">
               <div className="text-center">
                 <div className="font-mono text-base font-bold text-primary">
-                  ${Number(currentPrice?.yes).toFixed(2)}
+                  ${formatPrice(yesPrice, nativeCurrencyPrice)}
                 </div>
                 <div className="text-xs text-muted-foreground">Yes</div>
               </div>
               <div className="text-center">
-                <div className="font-mono text-base font-bold text-no">${Number(currentPrice?.no).toFixed(2)}</div>
+                <div className="font-mono text-base font-bold text-no">
+                  ${formatPrice(noPrice, nativeCurrencyPrice)}
+                </div>
                 <div className="text-xs text-muted-foreground">No</div>
               </div>
             </div>

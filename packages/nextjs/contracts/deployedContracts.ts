@@ -24,14 +24,9 @@ const deployedContracts = {
               internalType: "uint256",
             },
             {
-              name: "outcome",
+              name: "isYes",
               type: "bool",
               internalType: "bool",
-            },
-            {
-              name: "quoteAmount",
-              type: "uint256",
-              internalType: "uint256",
             },
           ],
           outputs: [],
@@ -331,12 +326,41 @@ const deployedContracts = {
         },
         {
           type: "function",
+          name: "getPrices",
+          inputs: [
+            {
+              name: "id",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "yesPrice",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "noPrice",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
           name: "getUserPredictions",
           inputs: [
             {
               name: "marketId",
               type: "uint256",
               internalType: "uint256",
+            },
+            {
+              name: "user",
+              type: "address",
+              internalType: "address",
             },
           ],
           outputs: [
@@ -500,7 +524,7 @@ const deployedContracts = {
               internalType: "uint256",
             },
             {
-              name: "outcome",
+              name: "isYes",
               type: "bool",
               internalType: "bool",
             },
@@ -611,20 +635,7 @@ const deployedContracts = {
         },
         {
           type: "event",
-          name: "MarketDeleted",
-          inputs: [
-            {
-              name: "marketId",
-              type: "uint256",
-              indexed: true,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "PriceAction",
+          name: "PriceUpdated",
           inputs: [
             {
               name: "id",
@@ -646,6 +657,18 @@ const deployedContracts = {
             },
             {
               name: "amount",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "yesPrice",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "noPrice",
               type: "uint256",
               indexed: false,
               internalType: "uint256",
@@ -744,17 +767,6 @@ const deployedContracts = {
         },
         {
           type: "error",
-          name: "InsufficientLotSize",
-          inputs: [
-            {
-              name: "amount",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-        },
-        {
-          type: "error",
           name: "InsufficientPayment",
           inputs: [
             {
@@ -763,6 +775,11 @@ const deployedContracts = {
               internalType: "uint256",
             },
           ],
+        },
+        {
+          type: "error",
+          name: "InsufficientShares",
+          inputs: [],
         },
         {
           type: "error",
@@ -821,18 +838,7 @@ const deployedContracts = {
         {
           type: "error",
           name: "MarketNotOpen",
-          inputs: [
-            {
-              name: "nowTs",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "closeTs",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
+          inputs: [],
         },
         {
           type: "error",
@@ -863,6 +869,76 @@ const deployedContracts = {
         },
         {
           type: "error",
+          name: "PRBMath_MulDiv18_Overflow",
+          inputs: [
+            {
+              name: "x",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "y",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "PRBMath_MulDiv_Overflow",
+          inputs: [
+            {
+              name: "x",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "y",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "denominator",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "PRBMath_UD60x18_Exp2_InputTooBig",
+          inputs: [
+            {
+              name: "x",
+              type: "uint256",
+              internalType: "UD60x18",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "PRBMath_UD60x18_Exp_InputTooBig",
+          inputs: [
+            {
+              name: "x",
+              type: "uint256",
+              internalType: "UD60x18",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "PRBMath_UD60x18_Log_InputTooSmall",
+          inputs: [
+            {
+              name: "x",
+              type: "uint256",
+              internalType: "UD60x18",
+            },
+          ],
+        },
+        {
+          type: "error",
           name: "SettlementNotRequested",
           inputs: [
             {
@@ -874,6 +950,11 @@ const deployedContracts = {
         },
         {
           type: "error",
+          name: "SlippageExceeded",
+          inputs: [],
+        },
+        {
+          type: "error",
           name: "StatusNotOpen",
           inputs: [
             {
@@ -882,6 +963,11 @@ const deployedContracts = {
               internalType: "enum PredictionMarket.Status",
             },
           ],
+        },
+        {
+          type: "error",
+          name: "TransferFailed",
+          inputs: [],
         },
       ],
       inheritedFunctions: {},
@@ -907,14 +993,9 @@ const deployedContracts = {
               internalType: "uint256",
             },
             {
-              name: "outcome",
+              name: "isYes",
               type: "bool",
               internalType: "bool",
-            },
-            {
-              name: "quoteAmount",
-              type: "uint256",
-              internalType: "uint256",
             },
           ],
           outputs: [],
@@ -1214,12 +1295,41 @@ const deployedContracts = {
         },
         {
           type: "function",
+          name: "getPrices",
+          inputs: [
+            {
+              name: "id",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "yesPrice",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "noPrice",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
           name: "getUserPredictions",
           inputs: [
             {
               name: "marketId",
               type: "uint256",
               internalType: "uint256",
+            },
+            {
+              name: "user",
+              type: "address",
+              internalType: "address",
             },
           ],
           outputs: [
@@ -1383,7 +1493,7 @@ const deployedContracts = {
               internalType: "uint256",
             },
             {
-              name: "outcome",
+              name: "isYes",
               type: "bool",
               internalType: "bool",
             },
@@ -1494,20 +1604,7 @@ const deployedContracts = {
         },
         {
           type: "event",
-          name: "MarketDeleted",
-          inputs: [
-            {
-              name: "marketId",
-              type: "uint256",
-              indexed: true,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "PriceAction",
+          name: "PriceUpdated",
           inputs: [
             {
               name: "id",
@@ -1529,6 +1626,18 @@ const deployedContracts = {
             },
             {
               name: "amount",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "yesPrice",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "noPrice",
               type: "uint256",
               indexed: false,
               internalType: "uint256",
@@ -1627,17 +1736,6 @@ const deployedContracts = {
         },
         {
           type: "error",
-          name: "InsufficientLotSize",
-          inputs: [
-            {
-              name: "amount",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-        },
-        {
-          type: "error",
           name: "InsufficientPayment",
           inputs: [
             {
@@ -1646,6 +1744,11 @@ const deployedContracts = {
               internalType: "uint256",
             },
           ],
+        },
+        {
+          type: "error",
+          name: "InsufficientShares",
+          inputs: [],
         },
         {
           type: "error",
@@ -1704,18 +1807,7 @@ const deployedContracts = {
         {
           type: "error",
           name: "MarketNotOpen",
-          inputs: [
-            {
-              name: "nowTs",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "closeTs",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
+          inputs: [],
         },
         {
           type: "error",
@@ -1746,6 +1838,76 @@ const deployedContracts = {
         },
         {
           type: "error",
+          name: "PRBMath_MulDiv18_Overflow",
+          inputs: [
+            {
+              name: "x",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "y",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "PRBMath_MulDiv_Overflow",
+          inputs: [
+            {
+              name: "x",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "y",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "denominator",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "PRBMath_UD60x18_Exp2_InputTooBig",
+          inputs: [
+            {
+              name: "x",
+              type: "uint256",
+              internalType: "UD60x18",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "PRBMath_UD60x18_Exp_InputTooBig",
+          inputs: [
+            {
+              name: "x",
+              type: "uint256",
+              internalType: "UD60x18",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "PRBMath_UD60x18_Log_InputTooSmall",
+          inputs: [
+            {
+              name: "x",
+              type: "uint256",
+              internalType: "UD60x18",
+            },
+          ],
+        },
+        {
+          type: "error",
           name: "SettlementNotRequested",
           inputs: [
             {
@@ -1757,6 +1919,11 @@ const deployedContracts = {
         },
         {
           type: "error",
+          name: "SlippageExceeded",
+          inputs: [],
+        },
+        {
+          type: "error",
           name: "StatusNotOpen",
           inputs: [
             {
@@ -1765,6 +1932,11 @@ const deployedContracts = {
               internalType: "enum PredictionMarket.Status",
             },
           ],
+        },
+        {
+          type: "error",
+          name: "TransferFailed",
+          inputs: [],
         },
       ],
       inheritedFunctions: {},

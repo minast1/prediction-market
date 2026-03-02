@@ -26,7 +26,7 @@ const PriceChart = ({ data }: PriceChartProps) => {
         </div>
       </div>
       <ResponsiveContainer width="100%" height={240}>
-        <AreaChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+        <AreaChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }} key={data.length}>
           <defs>
             <linearGradient id="yesGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="hsl(152, 60%, 48%)" stopOpacity={0.3} />
@@ -44,7 +44,7 @@ const PriceChart = ({ data }: PriceChartProps) => {
             tick={{ fill: "hsl(215, 12%, 55%)", fontSize: 11 }}
             tickLine={false}
             axisLine={false}
-            tickFormatter={(v: number) => `${Math.round(v * 100)}¢`}
+            tickFormatter={(v: number) => `${Math.round(v)}$`}
           />
           <Tooltip
             contentStyle={{
@@ -54,10 +54,7 @@ const PriceChart = ({ data }: PriceChartProps) => {
               fontSize: "12px",
             }}
             labelStyle={{ color: "hsl(215, 12%, 55%)" }}
-            // formatter={(value: number, name: string) => [
-            //   `${Math.round(value * 100)}¢`,
-            //   name === "yes" ? "Yes" : "No",
-            // ]}
+            formatter={(value, name) => [`${Math.abs(Number(value)).toFixed(1)}$`, name === "yes" ? "Yes" : "No"]}
           />
           <Area type="monotone" dataKey="yes" stroke="hsl(152, 60%, 48%)" strokeWidth={2} fill="url(#yesGradient)" />
           <Area type="monotone" dataKey="no" stroke="hsl(0, 72%, 51%)" strokeWidth={2} fill="url(#noGradient)" />

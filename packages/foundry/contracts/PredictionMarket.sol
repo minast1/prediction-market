@@ -477,8 +477,9 @@ contract PredictionMarket {
     }
 
     function getUserPredictions(
-        uint256 marketId
+        uint256 marketId,
+        address user
     ) external view returns (Prediction memory) {
-        return predictions[marketId][msg.sender];
+        return predictions[marketId][user];
     }
 }
