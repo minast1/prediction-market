@@ -3,6 +3,7 @@
 import React, { use, useMemo, useState } from "react";
 import Link from "next/link";
 import PriceChart from "../_components/price-chart";
+import MarketDetailSkeleton from "../_components/skeleton";
 //import PriceChart from "../_components/price-chart";
 import TradePanel from "../_components/trade-panel";
 import { useFetchNativeCurrencyPrice } from "@scaffold-ui/hooks";
@@ -19,7 +20,7 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
   const { address } = useAccount();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { price: nativeCurrencyPrice } = useFetchNativeCurrencyPrice();
-  const { data: market } = useScaffoldReadContract({
+  const { data: market, isLoading: isLoadingMarketDetails } = useScaffoldReadContract({
     contractName: "PredictionMarket",
     functionName: "getMarketInfo",
     args: [BigInt(marketId)],
@@ -77,6 +78,14 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
       },
     );
   };
+
+  if (isLoadingMarketDetails) {
+    return (
+      <div className="min-h-screen bg-background">
+        <MarketDetailSkeleton />
+      </div>
+    );
+  }
 
   if (!market) {
     return (
