@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useMemo } from "react";
+import React, { use, useMemo, useState } from "react";
 import Link from "next/link";
 import PriceChart from "../_components/price-chart";
 //import PriceChart from "../_components/price-chart";
@@ -8,13 +8,16 @@ import TradePanel from "../_components/trade-panel";
 import { useFetchNativeCurrencyPrice } from "@scaffold-ui/hooks";
 import { ArrowLeft, BarChart2, Clock, Droplets, Users } from "lucide-react";
 import { useAccount } from "wagmi";
-import { useScaffoldContract, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { Button } from "~~/components/ui/button";
+import { Spinner } from "~~/components/ui/spinner";
+import { useScaffoldContract, useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { useMarketPriceHistory } from "~~/hooks/useMarketPriceHistory";
 import { CATEGORIES, calculatePotentialPayout, formatPrice, timeLeftLabel } from "~~/lib/markets";
 
 export default function MarketDetailPage({ params }: { params: Promise<{ marketId: string }> }) {
   const { marketId } = use(params);
   const { address } = useAccount();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { price: nativeCurrencyPrice } = useFetchNativeCurrencyPrice();
   const { data: market } = useScaffoldReadContract({
     contractName: "PredictionMarket",
@@ -28,6 +31,10 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
     contractInfo?.abi,
     nativeCurrencyPrice,
   );
+
+  const { writeContractAsync: writeAsync, isMining } = useScaffoldWriteContract({
+    contractName: "PredictionMarket",
+  });
 
   const { data: userPredictions } = useScaffoldReadContract({
     contractName: "PredictionMarket",
@@ -54,6 +61,22 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
     const total = calculatePotentialPayout(winningAmount, winner, market);
     return total;
   }, [market, userPredictions]);
+
+  const claimWinnings = async () => {
+    if (!market) return;
+    setIsSubmitting(true);
+    await writeAsync(
+      {
+        functionName: "claimWinnings",
+        args: [BigInt(market.id)],
+      },
+      {
+        onBlockConfirmation: () => {
+          setIsSubmitting(false);
+        },
+      },
+    );
+  };
 
   if (!market) {
     return (
@@ -181,9 +204,19 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
                 <p className="text-xs text-muted-foreground mb-3">
                   This market has resolved. If you hold winning shares, claim your payout below.
                 </p>
-                <button className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:brightness-110 transition-all">
-                  {`Claim $${(Number(payOut) * nativeCurrencyPrice).toFixed(2)}`}
-                </button>
+                <Button
+                  onClick={claimWinnings}
+                  className="w-full bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:brightness-110 transition-all"
+                >
+                  {isSubmitting || isMining ? (
+                    <>
+                      Submitting..
+                      <Spinner className="ml-2" />
+                    </>
+                  ) : (
+                    `Claim $${(Number(payOut) * nativeCurrencyPrice).toFixed(2)}`
+                  )}
+                </Button>
               </div>
             )}
           </div>
