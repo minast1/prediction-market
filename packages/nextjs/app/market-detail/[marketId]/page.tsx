@@ -26,7 +26,7 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
     args: [BigInt(marketId)],
   });
   const { data: contractInfo } = useScaffoldContract({ contractName: "PredictionMarket" });
-  const { chartData } = useMarketPriceHistory(
+  const { chartData, tradeHistory } = useMarketPriceHistory(
     market?.id,
     contractInfo?.address,
     contractInfo?.abi,
@@ -88,16 +88,17 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
   }
 
   if (!market) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container py-16 text-center">
-          <p className="text-lg text-muted-foreground">Market not found</p>
-          <Link href="/markets" className="text-primary hover:underline text-sm mt-2 inline-block">
-            Back to markets
-          </Link>
-        </div>
-      </div>
-    );
+    return null;
+    // return (
+    //   <div className="min-h-screen bg-background">
+    //     <div className="container py-16 text-center">
+    //       <p className="text-lg text-muted-foreground">Market not found</p>
+    //       <Link href="/markets" className="text-primary hover:underline text-sm mt-2 inline-block">
+    //         Back to markets
+    //       </Link>
+    //     </div>
+    //   </div>
+    // );
   }
   const now = BigInt(Math.floor(Date.now() / 1000));
 
@@ -172,32 +173,36 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
                     <span>Price</span>
                     <span>Shares</span>
                   </div>
-                  {[0.63, 0.64, 0.65, 0.66, 0.67].map((p, i) => (
-                    <div key={p} className="flex justify-between text-xs font-mono py-1 relative">
-                      <div
-                        className="absolute inset-y-0 right-0 bg-primary/8 rounded-sm"
-                        style={{ width: `${(5 - i) * 20}%` }}
-                      />
-                      <span className="relative text-primary">{p}</span>
-                      <span className="relative text-muted-foreground">{(500 - i * 80).toLocaleString()}</span>
-                    </div>
-                  ))}
+                  {tradeHistory
+                    .filter(el => el.side === "YES")
+                    .map((p, i) => (
+                      <div key={i} className="flex justify-between text-xs font-mono py-1 relative">
+                        <div
+                          className="absolute inset-y-0 right-0 bg-primary/8 rounded-sm"
+                          style={{ width: `${(5 - i) * 20}%` }}
+                        />
+                        <span className="relative text-primary">{p.yesPriceUsd.toFixed(2)}</span>
+                        <span className="relative text-muted-foreground">{Number(p.amount).toFixed(1)}</span>
+                      </div>
+                    ))}
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground mb-2 flex justify-between">
                     <span>Price</span>
                     <span>Shares</span>
                   </div>
-                  {[0.62, 0.61, 0.6, 0.59, 0.58].map((p, i) => (
-                    <div key={p} className="flex justify-between text-xs font-mono py-1 relative">
-                      <div
-                        className="absolute inset-y-0 right-0 rounded-sm"
-                        style={{ width: `${(5 - i) * 20}%`, backgroundColor: "hsl(var(--no) / 0.08)" }}
-                      />
-                      <span className="relative text-no">{p}</span>
-                      <span className="relative text-muted-foreground">{(420 - i * 70).toLocaleString()}</span>
-                    </div>
-                  ))}
+                  {tradeHistory
+                    .filter(el => el.side === "NO")
+                    .map((p, i) => (
+                      <div key={i} className="flex justify-between text-xs font-mono py-1 relative">
+                        <div
+                          className="absolute inset-y-0 right-0 rounded-sm"
+                          style={{ width: `${(5 - i) * 20}%`, backgroundColor: "hsl(var(--no) / 0.08)" }}
+                        />
+                        <span className="relative text-no">{p.noPriceUsd.toFixed(2)}</span>
+                        <span className="relative text-muted-foreground">{Number(p.amount).toFixed(1)}</span>
+                      </div>
+                    ))}
                 </div>
               </div>
             </div>

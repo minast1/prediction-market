@@ -461,15 +461,13 @@ contract PredictionMarket {
         return allMarkets;
     }
 
-    /**
-     * @notice Deletes a market by resetting its data.
-     * @dev Only the admin can call this. Note: userBalances for this market remain in state.
-     */
-    // function deleteMarket(uint256 marketId) external {
-    //     if (marketId > marketCount) revert InvalidMarket(marketId);
-    //     delete markets[marketId];
-    //     emit MarketDeleted(marketId);
-    // }
+    //   function getUserActivePositions(address user) external view returns (Market[] memory userMarkets, Prediction[] memory userPredictions) {
+    //       uint256 activeCount = 0 ;
+
+    //       for (uint256 i = 1; i < marketCount; i++) {
+    //          Prediction storage
+    //       }
+    //   }
 
     function getPrediction(
         uint256 marketId

@@ -65,3 +65,23 @@ export interface TransformedMarket {
   active_predictions: bigint;
   isClosed: boolean;
 }
+
+export interface TradeEntry {
+  side: string;
+  amount: string;
+  yesPriceUsd: number;
+  noPriceUsd: number;
+  timestamp: number;
+}
+
+export interface ChartPoint {
+  time: string;
+  yes: number;
+  no: number;
+  yesProb: string;
+}
+
+export interface MarketHistory {
+  chartData: ChartPoint[];
+  tradeHistory: TradeEntry[];
+}

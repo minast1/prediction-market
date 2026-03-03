@@ -1,18 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Abi, formatUnits, parseAbiItem } from "viem";
-import { usePublicClient, useWatchContractEvent } from "wagmi";
+import { useAccount, usePublicClient, useWatchContractEvent } from "wagmi";
+import { MarketHistory } from "~~/types/market";
 
 const PRICEACTION_ABI = parseAbiItem(
   `event PriceUpdated(uint256 indexed id, address indexed user, bool outcome, uint256 amount, uint256 yesPrice, uint256 noPrice, uint256 timeStamp)`,
 );
-
-// interface PriceActionArgs {
-//   id: bigint;
-//   user: `0x${string}`;
-//   outcome: boolean;
-//   amount: bigint;
-//   timeStamp: bigint;
-// }
 
 export const useMarketPriceHistory = (
   marketId: bigint | undefined,
@@ -21,21 +14,18 @@ export const useMarketPriceHistory = (
   ethPrice: number | undefined,
 ) => {
   const publicClient = usePublicClient();
-  const isReady = !!marketId && !!publicClient && !!contractAddress && !!contractAbi && !!ethPrice;
+  const { address } = useAccount();
+  const isReady = !!marketId && !!publicClient && !!contractAddress && !!contractAbi && !!ethPrice && !!address;
 
   // const queryKey = ["marketPriceHistory", marketId?.toString(), contractAddress];
   // 2. Fetch Historical Logs for the Chart
-  const {
-    data: chartData = [],
-    isLoading,
-    refetch: refetchMarket,
-  } = useQuery({
+  const { data, isLoading, refetch } = useQuery<MarketHistory>({
     queryKey: ["marketPriceHistory", marketId?.toString(), contractAddress, publicClient, contractAbi, ethPrice],
     enabled: isReady,
-    //staleTime: 60000, // Data stays fresh for 60 seconds
+    initialData: { chartData: [], tradeHistory: [] },
     // gcTime: 1000 * 60 * 60, // Keep in cache for 1 hour
-    queryFn: async () => {
-      if (!marketId || !contractAddress || !publicClient) return [];
+    queryFn: async (): Promise<MarketHistory> => {
+      if (!marketId || !contractAddress || !publicClient) return { chartData: [], tradeHistory: [] };
       const logs = await publicClient!.getLogs({
         address: contractAddress,
         event: PRICEACTION_ABI,
@@ -64,7 +54,26 @@ export const useMarketPriceHistory = (
         no: 0.5 * ethPrice!,
         yesProb: "50.0%",
       };
-      return [startingPoint, ...mappedLogs];
+      const tradeHistory = logs
+        .filter(el => el.args.user === address)
+        .map(log => {
+          const { yesPrice, noPrice, timeStamp, amount, outcome } = log.args;
+          const yPrice = parseFloat(formatUnits(yesPrice!, 18));
+          const nPrice = parseFloat(formatUnits(noPrice!, 18));
+          return {
+            side: outcome ? "YES" : "NO",
+            amount: formatUnits(amount!, 18),
+            yesPriceUsd: yPrice * ethPrice!,
+            noPriceUsd: nPrice * ethPrice!,
+            timestamp: Number(timeStamp),
+          };
+        })
+        .sort((a, b) => Number(a.timestamp) - Number(b.timestamp))
+        .reverse();
+      return {
+        chartData: [startingPoint, ...mappedLogs],
+        tradeHistory,
+      };
     },
   });
 
@@ -85,9 +94,9 @@ export const useMarketPriceHistory = (
       //   }));
       //   return [...old, ...enriched];
       // });
-      refetchMarket(); // Refresh the on-chain share counts for current price
+      refetch(); // Refresh the on-chain share counts for current price
     },
   });
 
-  return { chartData, isLoading };
+  return { chartData: data.chartData, tradeHistory: data.tradeHistory, isLoading };
 };

@@ -1,6 +1,9 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
+import PortfolioPageSkeleton from "./_components/skeleton";
+import { useFetchNativeCurrencyPrice, useWatchBalance } from "@scaffold-ui/hooks";
 import { CheckCircle, ExternalLink, Globe, TrendingDown, TrendingUp, Wallet } from "lucide-react";
 import { NextPage } from "next";
 import {
@@ -15,14 +18,38 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { formatEther, getAddress, isAddress } from "viem";
+import { useAccount, useEnsName } from "wagmi";
+import { useNetworkColor, useTargetNetwork } from "~~/hooks/scaffold-eth";
 import { MOCK_MARKETS, MOCK_POSITIONS } from "~~/lib/markets";
 
 const Portfolio: NextPage = () => {
-  const totalValue = MOCK_POSITIONS.reduce((s, p) => s + p.shares * p.currentPrice, 0);
+  const { address } = useAccount();
+  const { data: balance } = useWatchBalance({ address });
+  const { price: ethPrice } = useFetchNativeCurrencyPrice();
+  const { targetNetwork } = useTargetNetwork();
+
+  const checkSumAddress = useMemo(() => {
+    if (!address || !isAddress(address)) return undefined;
+    return getAddress(address); // 🚀 Converts to Checksum format
+  }, [address]);
+
+  const { data: ensName } = useEnsName({
+    address: checkSumAddress!,
+    query: {
+      enabled: !!checkSumAddress,
+    },
+    chainId: targetNetwork.id, // ENS only lives on Ethereum Mainnet
+  });
+
+  const displayName = ensName ? ensName : `${checkSumAddress?.slice(0, 6)}...${checkSumAddress?.slice(-4)}`;
+  const networkColor = useNetworkColor();
+
+  const totalValue = balance ? Number(formatEther(balance.value)) : 0;
   const totalPnl = MOCK_POSITIONS.reduce((s, p) => s + p.pnl, 0);
   const totalCost = MOCK_POSITIONS.reduce((s, p) => s + p.shares * p.avgPrice, 0);
   const totalPnlPercent = totalCost > 0 ? (totalPnl / totalCost) * 100 : 0;
-
+  const isLoading = false;
   const activePositions = MOCK_POSITIONS.filter(p => {
     const m = MOCK_MARKETS.find(mk => mk.id === p.marketId);
     return m && !m.resolved;
@@ -56,6 +83,15 @@ const Portfolio: NextPage = () => {
 
   const accuracyPercent =
     resolvedPositions.length > 0 ? Math.round((correctPredictions / resolvedPositions.length) * 100) : 0;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <PortfolioPageSkeleton />
+      </div>
+    );
+  }
+  console.log(networkColor);
   return (
     <section>
       <div className="container py-8">
@@ -67,11 +103,15 @@ const Portfolio: NextPage = () => {
             <div className="flex items-center gap-2 stat-label">
               <Wallet className="h-3.5 w-3.5" /> Wallet Balance
             </div>
-            <div className="stat-value mt-1">${totalValue.toFixed(2)}</div>
+            <div className="stat-value mt-1">${(totalValue * ethPrice).toFixed(2)}</div>
             <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
               <Globe className="h-3 w-3" />
-              <span className="font-mono">Polygon</span>
-              <span className="font-mono">· 0x7a3B...9f2E</span>
+              <span className="font-mono">{targetNetwork.name}</span>
+              <span
+                className={`rounded-full w-2 h-2 border`}
+                style={{ backgroundColor: networkColor, borderColor: networkColor }}
+              />
+              <span className="font-mono"> {displayName}</span>
             </div>
           </div>
           <div className="glass-card p-5">

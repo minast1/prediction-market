@@ -196,7 +196,7 @@ const TradePanel = ({ market }: TradePanelProps) => {
         className={`w-full rounded-lg py-3 text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
           side === "yes"
             ? "bg-primary text-primary-foreground hover:brightness-110"
-            : "bg-no text-no-foreground hover:brightness-110"
+            : "bg-no text-no-foreground hover:brightness-110 hover:bg-no"
         }`}
       >
         {isLoading || isMining ? (
