@@ -265,12 +265,12 @@ export const getTrendingScore = (market: Market) => {
  * @param market The market object from your contract
  */
 export const calculatePotentialPayout = (
-  userStake: bigint,
-  userSide: number,
+  userStake: bigint, // This is the amount the user has on the WINNING side
+  winningSide: number,
   market: Pick<Market, "yesShares" | "noShares">,
 ) => {
   if (userStake === 0n) return "0.00";
-  const isYes = userSide === 1;
+  const isYes = winningSide === 2;
   const winnnigPool = isYes ? market.yesShares : market.noShares;
   const loosingPool = isYes ? market.noShares : market.yesShares;
 

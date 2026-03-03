@@ -1,18 +1,20 @@
 "use client";
 
-import React, { use } from "react";
+import React, { use, useMemo } from "react";
 import Link from "next/link";
 import PriceChart from "../_components/price-chart";
 //import PriceChart from "../_components/price-chart";
 import TradePanel from "../_components/trade-panel";
 import { useFetchNativeCurrencyPrice } from "@scaffold-ui/hooks";
 import { ArrowLeft, BarChart2, Clock, Droplets, Users } from "lucide-react";
+import { useAccount } from "wagmi";
 import { useScaffoldContract, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 import { useMarketPriceHistory } from "~~/hooks/useMarketPriceHistory";
-import { CATEGORIES, formatPrice } from "~~/lib/markets";
+import { CATEGORIES, calculatePotentialPayout, formatPrice, timeLeftLabel } from "~~/lib/markets";
 
 export default function MarketDetailPage({ params }: { params: Promise<{ marketId: string }> }) {
   const { marketId } = use(params);
+  const { address } = useAccount();
   const { price: nativeCurrencyPrice } = useFetchNativeCurrencyPrice();
   const { data: market } = useScaffoldReadContract({
     contractName: "PredictionMarket",
@@ -27,6 +29,32 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
     nativeCurrencyPrice,
   );
 
+  const { data: userPredictions } = useScaffoldReadContract({
+    contractName: "PredictionMarket",
+    functionName: "getUserPredictions",
+    args: [BigInt(market?.id || 0), address],
+    query: {
+      enabled: !!market,
+    },
+  });
+  const claimed = userPredictions?.claimed === true;
+  const payOut = useMemo(() => {
+    // 1. If market isn't resolved (Status 3) or data is missing, return 0
+    if (!market || !userPredictions || market.status !== 3) return "0.00";
+    const winner = market.outcome;
+    let winningAmount = 0n;
+    if (winner === 2) {
+      //Yes won
+      winningAmount = userPredictions.yesAmount;
+    } else if (winner === 1) {
+      //No won
+      winningAmount = userPredictions.noAmount;
+    }
+    if (winningAmount === 0n) return "0.00";
+    const total = calculatePotentialPayout(winningAmount, winner, market);
+    return total;
+  }, [market, userPredictions]);
+
   if (!market) {
     return (
       <div className="min-h-screen bg-background">
@@ -40,10 +68,11 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
     );
   }
   const now = BigInt(Math.floor(Date.now() / 1000));
-  const oneDayInSeconds = 86400n;
-  const diff = market.marketClose > now ? market.marketClose - now : 0n;
-  const daysLeft = Number(diff / oneDayInSeconds);
 
+  const diff = market.marketClose > now ? market.marketClose - now : 0n;
+  const daysLeft = timeLeftLabel(diff);
+  const isClosed = now > market.marketClose;
+  const isWon = market.outcome == userPredictions?.lastSide;
   return (
     <section>
       <div className="container py-6">
@@ -80,7 +109,7 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
                   value: formatPrice(market.yesShares + market.noShares, nativeCurrencyPrice),
                 },
                 { icon: Droplets, label: "Liquidity", value: formatPrice(market.liquidity, nativeCurrencyPrice) },
-                { icon: Clock, label: "Ends", value: market.status == 3 ? "Resolved" : `${daysLeft} days` },
+                { icon: Clock, label: "Ends", value: isClosed ? "Ended" : `${daysLeft}` },
                 {
                   icon: Users,
                   label: "Traders",
@@ -146,14 +175,14 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
           <div className="space-y-4">
             <TradePanel market={market as any} />
 
-            {market.status == 3 && (
+            {market.status == 3 && isWon && !claimed && (
               <div className="glass-card p-4 border-primary/30">
                 <h3 className="text-sm font-semibold mb-2 text-primary">🎉 Claim Winnings</h3>
                 <p className="text-xs text-muted-foreground mb-3">
                   This market has resolved. If you hold winning shares, claim your payout below.
                 </p>
                 <button className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:brightness-110 transition-all">
-                  Claim $67.50
+                  {`Claim $${(Number(payOut) * nativeCurrencyPrice).toFixed(2)}`}
                 </button>
               </div>
             )}

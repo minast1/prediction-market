@@ -48,11 +48,12 @@ const TradePanel = ({ market }: TradePanelProps) => {
   const isOverNoPoolSize =
     tab === "sell" && userPredictions && parseEther(amount) > userPredictions.noAmount && side === "no";
   //const hasPartaken = userPredictions?.lastUpdated !== BigInt(0);
-  const hasShares = userPredictions?.yesAmount !== BigInt(0);
-  //const claimed = userPredictions?.claimed === true;
+  const hasShares = userPredictions?.lastUpdated !== 0n;
+
   ///sconsole.log({ isOverYesPoolSize, isOverNoPoolSize });
   const { price: ethPrice } = useFetchNativeCurrencyPrice();
-
+  const now = BigInt(Math.floor(Date.now() / 1000));
+  const isClosed = market && now > market.marketClose;
   const potentialReturn = !market
     ? 0
     : Number(calculatePotentialPayout(parseEther(amount), side === "yes" ? 1 : 0, market));
@@ -190,7 +191,7 @@ const TradePanel = ({ market }: TradePanelProps) => {
       </div>
 
       <Button
-        disabled={!amount || market?.status === 3 || isOverBalance}
+        disabled={!amount || isClosed || market?.status === 3 || isOverBalance}
         onClick={handleTrade}
         className={`w-full rounded-lg py-3 text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
           side === "yes"
@@ -204,7 +205,9 @@ const TradePanel = ({ market }: TradePanelProps) => {
             <Spinner className="mr-2" />
           </>
         ) : market?.status === 3 ? (
-          "Market Resolved"
+          "Resolved"
+        ) : isClosed ? (
+          "Market Closed"
         ) : (
           `${tab === "buy" ? "Buy" : "Sell"} ${side === "yes" ? "Yes" : "No"}`
         )}

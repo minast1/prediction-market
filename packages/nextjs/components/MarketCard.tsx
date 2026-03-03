@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Badge } from "./ui/badge";
 import { useFetchNativeCurrencyPrice } from "@scaffold-ui/hooks";
 import { BarChart2, Clock, TrendingUp, Zap } from "lucide-react";
+import { formatEther } from "viem";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 import useMarketStats from "~~/hooks/useMarketStats";
 import useTransformedMarketData from "~~/hooks/useTransformedMarketData";
@@ -35,7 +36,9 @@ const MarketCard = ({ market }: MarketCardProps) => {
   });
   const yesPrice = currentPrice ? currentPrice[0] : 0n;
   const noPrice = currentPrice ? currentPrice[1] : 0n;
-  const priceChange = Number(yesPrice) - Number(noPrice);
+  const priceChangeWei = yesPrice - noPrice;
+  const priceChangeEth = formatEther(priceChangeWei);
+  const priceChange = Number(priceChangeEth);
 
   //const now = BigInt(Math.floor(Date.now() / 1000));
   const isClosed = now > market.endDate;
@@ -50,7 +53,8 @@ const MarketCard = ({ market }: MarketCardProps) => {
 
   const isEndingSoon = diff > 0n && diff < 3600n;
   const daysLeft = timeLeftLabel(diff);
-  console.log(diff);
+  const totalWei = market.yesShares + market.noShares;
+  const totalEth = formatEther(totalWei);
   return (
     <Link href={`/market-detail/${market.id}`} className="block">
       <div className="glass-card-hover p-4 h-full flex flex-col gap-3">
@@ -77,10 +81,12 @@ const MarketCard = ({ market }: MarketCardProps) => {
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             <BarChart2 className="h-3 w-3" />
-            {Number(market.yesShares + market.noShares) * nativeCurrencyPrice}
+            {(Number(totalEth) * nativeCurrencyPrice).toFixed(3)}
           </span>
           {isEndingSoon ? (
-            <Badge variant="destructive">Ending Soon</Badge>
+            <Badge variant="destructive" className="px-2 py-0.4 text-xs">
+              ending soon
+            </Badge>
           ) : (
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
