@@ -283,7 +283,7 @@ const Portfolio: NextPage = () => {
                   <div key={Number(pos.id)} className="glass-card p-4 flex items-center justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <Link
-                        href={`/markets/${Number(pos.id)}`}
+                        href={`/market-detail/${Number(pos.id)}`}
                         className="text-sm font-medium hover:text-primary transition-colors"
                       >
                         {pos.question}
