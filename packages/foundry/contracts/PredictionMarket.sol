@@ -149,6 +149,9 @@ contract PredictionMarket {
 
     /// @notice Mapping from market ID to its Market data.
     mapping(uint256 => Market) public markets;
+    mapping(address => uint256[]) private _userActiveMarkets;
+    mapping(address => mapping(uint256 => uint256))
+        private _marketIndexInUserArray;
 
     mapping(uint256 => mapping(address => Prediction)) predictions;
     /// @notice ERC-20 token used for staking and payouts.
@@ -156,6 +159,7 @@ contract PredictionMarket {
     // IERC20 public immutable paymentToken;
 
     constructor() {}
+    // --- Internal Helpers ---
 
     // ===========================
     // ======== AMM MATH =========
@@ -178,6 +182,25 @@ contract PredictionMarket {
         );
         // b * ln(sumExp)
         return bF.mul(sumExp.ln()).unwrap();
+    }
+
+    function _addToActiveMarkets(address user, uint256 id) internal {
+        _marketIndexInUserArray[user][id] = _userActiveMarkets[user].length;
+        _userActiveMarkets[user].push(id);
+    }
+
+    function _removeFromActiveMarkets(address user, uint256 id) internal {
+        uint256[] storage active = _userActiveMarkets[user];
+        uint256 indexToRemove = _marketIndexInUserArray[user][id];
+        uint256 lastIndex = active.length - 1;
+
+        if (indexToRemove != lastIndex) {
+            uint256 lastMarketId = active[lastIndex];
+            active[indexToRemove] = lastMarketId;
+            _marketIndexInUserArray[user][lastMarketId] = indexToRemove;
+        }
+        active.pop();
+        delete _marketIndexInUserArray[user][id];
     }
 
     /**
@@ -250,6 +273,7 @@ contract PredictionMarket {
         Prediction storage pred = predictions[id][msg.sender];
 
         if (pred.lastUpdated == 0) {
+            _addToActiveMarkets(msg.sender, id);
             m.totalParticipants++;
         }
 
@@ -318,6 +342,7 @@ contract PredictionMarket {
         // If the user now has 0 shares in both YES and NO, they are no longer an active participant
         if (pred.yesAmount == 0 && pred.noAmount == 0) {
             pred.lastSide = Outcome.None;
+            _removeFromActiveMarkets(msg.sender, id);
             if (m.totalParticipants > 0) m.totalParticipants--;
             pred.lastUpdated = 0; //TO TEST THIS
         } else {
@@ -437,6 +462,7 @@ contract PredictionMarket {
         pred.yesAmount = 0;
         pred.noAmount = 0;
         pred.lastSide = Outcome.None;
+        _removeFromActiveMarkets(msg.sender, marketId);
         pred.claimed = true;
         (bool success, ) = payable(msg.sender).call{value: totalPayout}("");
         if (!success) revert TransferFailed();
@@ -461,13 +487,11 @@ contract PredictionMarket {
         return allMarkets;
     }
 
-    //   function getUserActivePositions(address user) external view returns (Market[] memory userMarkets, Prediction[] memory userPredictions) {
-    //       uint256 activeCount = 0 ;
-
-    //       for (uint256 i = 1; i < marketCount; i++) {
-    //          Prediction storage
-    //       }
-    //   }
+    function getUserActiveMarketIds(
+        address user
+    ) external view returns (uint[] memory) {
+        return _userActiveMarkets[user];
+    }
 
     function getPrediction(
         uint256 marketId

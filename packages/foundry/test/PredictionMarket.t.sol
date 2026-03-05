@@ -202,6 +202,71 @@ contract PredictionMarketTest is Test {
         assertEq(m2.totalParticipants, 1);
     }
 
+    function testItSetsUserActiveMarketsForEachMarketOnlyOnce() public {
+        uint256 id1 = _createMarket();
+
+        vm.startPrank(alice);
+        market.buy{value: 1 ether}(id1, true);
+        uint[] memory activeMarkets = market.getUserActiveMarketIds(alice);
+        assertEq(activeMarkets.length, 1);
+
+        market.buy{value: 1 ether}(id1, false);
+        assertEq(market.getUserActiveMarketIds(alice).length, 1);
+    }
+
+    function testSwapAndPopRemovalOfUserActiveMarkets() public {
+        uint256 id1 = _createMarket();
+        uint256 id2 = _createMarket();
+        uint256 id3 = _createMarket();
+
+        vm.startPrank(alice);
+        market.buy{value: 1 ether}(id1, true);
+        market.buy{value: 1 ether}(id2, true);
+        market.buy{value: 1 ether}(id3, true);
+
+        // Remove the middle one (id2)
+        market.sell(id2, true, 1 ether, 0);
+
+        uint256[] memory activeIds = market.getUserActiveMarketIds(alice);
+        assertEq(activeIds.length, 2, "Should have 2 active markets");
+
+        // Due to Swap and Pop, the last element (id3) should now be at index 1
+        assertEq(activeIds[0], id1, "First element should remain id1");
+        assertEq(
+            activeIds[1],
+            id3,
+            "Last element should have swapped into index 1"
+        );
+        vm.stopPrank();
+    }
+
+    /**
+     * @notice Verifies that a market is only removed when the balance hits EXACTLY zero.
+     */
+    function testPartialSellDoesNotRemoveFromActiveMarketArray() public {
+        uint256 id = _createMarket();
+
+        vm.startPrank(alice);
+        market.buy{value: 2 ether}(id, true);
+
+        // Sell half - should still be active
+        market.sell(id, true, 1 ether, 0);
+        assertEq(
+            market.getUserActiveMarketIds(alice).length,
+            1,
+            "Should remain active after partial sell"
+        );
+
+        // Sell the rest - should be removed
+        market.sell(id, true, 1 ether, 0);
+        assertEq(
+            market.getUserActiveMarketIds(alice).length,
+            0,
+            "Should be removed after full sell"
+        );
+        vm.stopPrank();
+    }
+
     function testSellYes() public {
         uint256 marketId = _createMarket();
 

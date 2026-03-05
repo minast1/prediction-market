@@ -286,7 +286,7 @@ const NewMarketDialog = () => {
               name="volume"
               render={({ field, fieldState }) => (
                 <Field className="space-y-0" data-invalid={fieldState.invalid}>
-                  <FieldLabel className="text-sm text-inherit">Liquidity</FieldLabel>
+                  <FieldLabel className="text-sm text-inherit">Liquidity (ETH)</FieldLabel>
                   <EtherInput
                     placeholder="0.00"
                     value={field.value?.toString() ?? ""}

@@ -86,14 +86,7 @@ export const useMarketPriceHistory = (
     //fromBlock: BigInt(process.env.NEXT_PUBLIC_DEPLOYMENT_BLOCK || 0),
     onLogs: log => {
       console.log(log);
-      // Optimistically update the query cache instead of a full refetch
-      // queryClient.setQueryData(queryKey, (old: any[] = []) => {
-      //   const enriched = newLogs.map(log => ({
-      //     ...log,
-      //     decoded: decodeEventLog({ abi: contractAbi!, data: log.data, topics: log.topics }),
-      //   }));
-      //   return [...old, ...enriched];
-      // });
+
       refetch(); // Refresh the on-chain share counts for current price
     },
   });

@@ -29,8 +29,8 @@
   --color-ring: oklch(var(--ring));
 
   /* Prediction Market Specific */
-  --color-yes: oklch(var(--yes));
-  --color-no: oklch(var(--no));
+  --color-yes: oklch(0.727 0.154 157.5);
+  --color-no: oklch(0.599 0.202 25.8);
   --color-text-tertiary: oklch(var(--text-tertiary));
   --color-surface-hover: oklch(var(--surface-hover));
 
@@ -40,7 +40,7 @@
   /* v4 Custom Utilities: This allows @apply glass-card to work */
   --utility-glass-card: {
     background-color: oklch(var(--card));
-    border: 1px solid oklch(var(--border));
+    border: oklch(0.244, 0.015, 252.1);
     border-radius: var(--radius);
   };
 }
@@ -69,8 +69,8 @@
   --ring: 0.78 0.18 160;
   --radius: 0.5rem;
 
-  --yes: 0.72 0.22 160; /* Vibrant Emerald */
-  --no: 0.6 0.25 28;
+  --yes: 0.727, 0.154, 157.5; /* Vibrant Emerald */
+  --no: 0.599, 0.202, 25.8;
   --text-tertiary: 0.55 0.02 260;
   --surface-hover: 0.2 0.04 260;
 }
@@ -116,5 +116,13 @@
 
   .stat-label {
     @apply text-sm text-muted-foreground;
+  }
+
+  .price-up {
+    @apply text-yes;
+  }
+
+  .price-down {
+    @apply text-no;
   }
 }

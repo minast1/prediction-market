@@ -40,7 +40,7 @@ const useCalculateSellPayout = (
       const nextY = isYes ? Decimal.max(0, y.minus(amount)) : y;
       const nextN = !isYes ? Decimal.max(0, n.minus(amount)) : n;
 
-      console.log({ nextY: nextY.isNegative(), nextN: nextN.isNegative() });
+      // console.log({ nextY: nextY.isNegative(), nextN: nextN.isNegative() });
       if (nextY.isNegative() || nextN.isNegative()) return { minPayout: 0n, formattedPayout: "0" };
 
       const nextCost = getCost(nextY, nextN, b);

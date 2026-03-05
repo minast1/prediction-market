@@ -196,8 +196,8 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
                     .map((p, i) => (
                       <div key={i} className="flex justify-between text-xs font-mono py-1 relative">
                         <div
-                          className="absolute inset-y-0 right-0 rounded-sm"
-                          style={{ width: `${(5 - i) * 20}%`, backgroundColor: "hsl(var(--no) / 0.08)" }}
+                          className="absolute inset-y-0 right-0 rounded-sm bg-no/10"
+                          style={{ width: `${(5 - i) * 20}%` }}
                         />
                         <span className="relative text-no">{p.noPriceUsd.toFixed(2)}</span>
                         <span className="relative text-muted-foreground">{Number(p.amount).toFixed(1)}</span>

@@ -1,3 +1,4 @@
+import Decimal from "decimal.js";
 import { formatEther } from "viem";
 import { Market } from "~~/types/market";
 
@@ -300,4 +301,52 @@ export const timeLeftLabel = (diff: bigint) => {
     timeLeftLabel = `${mins}m left`;
   }
   return timeLeftLabel;
+};
+
+Decimal.set({ precision: 60, rounding: Decimal.ROUND_FLOOR });
+const WAD = new Decimal("1000000000000000000");
+
+export const calculateInstantValue = (market: any, isYes: boolean, amountWei: bigint) => {
+  if (!market || market.liquidity === 0n || amountWei === 0n) return 0n;
+
+  const b = new Decimal(market.liquidity.toString()).div(WAD);
+  const y = new Decimal(market.yesShares.toString()).div(WAD);
+  const n = new Decimal(market.noShares.toString()).div(WAD);
+  const amount = new Decimal(amountWei.toString()).div(WAD);
+
+  const getCost = (yV: Decimal, nV: Decimal, bV: Decimal) => {
+    const expY = yV.div(bV).exp();
+    const expN = nV.div(bV).exp();
+    return bV.mul(Decimal.ln(expY.plus(expN)));
+  };
+
+  const currentCost = getCost(y, n, b);
+  const nextY = isYes ? Decimal.max(0, y.minus(amount)) : y;
+  const nextN = !isYes ? Decimal.max(0, n.minus(amount)) : n;
+  const nextCost = getCost(nextY, nextN, b);
+
+  const payoutEth = currentCost.minus(nextCost);
+  return BigInt(payoutEth.mul(WAD).toFixed(0));
+};
+
+export const isNumericStrict = (val: any) => {
+  return !isNaN(val) && val.trim() !== "" && isFinite(val);
+};
+
+export const calculateCurrentPrice = (market: any) => {
+  if (!market || market.liquidity === 0n) return { yes: 0.5, no: 0.5 };
+
+  const b = new Decimal(market.liquidity.toString());
+  const y = new Decimal(market.yesShares.toString());
+  const n = new Decimal(market.noShares.toString());
+
+  // LMSR: P = e^(q/b) / (e^(y/b) + e^(n/b))
+  const expY = y.div(b).exp();
+  const expN = n.div(b).exp();
+  const total = expY.plus(expN);
+
+  return {
+    yes: expY.div(total).toNumber(),
+    no: expN.div(total).toNumber(),
+  };
 };
