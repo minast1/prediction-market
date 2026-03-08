@@ -1,14 +1,6 @@
-# 🏗 Scaffold-ETH 2
+# 🏗 PredictX
 
-<h4 align="center">
-  <a href="https://docs.scaffoldeth.io">Documentation</a> |
-  <a href="https://scaffoldeth.io">Website</a>
-</h4>
-
-🧪 An open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain. It's designed to make it easier for developers to create and deploy smart contracts and build user interfaces that interact with those contracts.
-
-> [!NOTE]
-> 🤖 Scaffold-ETH 2 is AI-ready! It has everything agents need to build on Ethereum. Check `.agents/`, `.claude/`, `.opencode` or `.cursor/` for more info.
+🧪 This is an autonomous, decentralized prediction market built on Base/Sepolia using Scaffold-ETH 2. The platform uses a Logarithmic Market Scoring Rule (LMSR) AMM for instant liquidity and Gemini 2.5 Flash for automated, factual market resolution.
 
 ⚙️ Built using NextJS, RainbowKit, Foundry, Wagmi, Viem, and Typescript.
 
@@ -20,15 +12,50 @@
 
 ![Debug Contracts tab](https://github.com/scaffold-eth/scaffold-eth-2/assets/55535804/b237af0c-5027-4849-a5c1-2e31495cccb1)
 
-## Requirements
+## 🚀 Key Features
 
-Before you begin, you need to install the following tools:
+- Autonomous AMM (LMSR): High-efficiency liquidity is provided by a native PRBMath implementation of the LMSR algorithm. No order books are needed—instant buy/sell occurs directly against the contract.
 
-- [Node (>= v20.18.3)](https://nodejs.org/en/download/)
-- Yarn ([v1](https://classic.yarnpkg.com/en/docs/install/) or [v2+](https://yarnpkg.com/getting-started/install))
-- [Git](https://git-scm.com/downloads)
+- AI Fact-Check Resolution: Markets are resolved using a custom Vercel AI SDK route that uses Google's Gemini models to research real-world outcomes.
+- Zero-Sum Payouts: Winners split the total pool of losers proportionally, ensuring the protocol remains solvent and decentralized.
+- Dynamic UI/UX: Real-time price charts, live P&L tracking, and "Last Minute" FOMO indicators are built with Recharts and Tailstack Query.
+- Portfolio Management: Efficient "Swap and Pop" on-chain tracking for active positions with a unified history reconstructed from event logs.
 
-## Quickstart
+## 🏗️ Architecture
+
+1. Smart Contracts (packages/foundry)
+
+   PredictionMarket.sol: This is the core engine.
+   Fixed-Point Math: It uses PRBMathUD60x18 for 18-decimal precision exponentials and logarithms.
+   Weight-Based Model: It tracks yesShares and noShares as ETH-weighted values.
+   Efficiency: It implements userActiveMarkets with O(1) removal logic to keep frontend queries fast.
+
+2. AI Resolution (packages/nextjs/api)
+
+   Model: gemini-3-flash-preview
+   Grounding: Uses the google_search tool to verify real-world events.
+   Schema: It strictly enforces JSON output for automated contract calls.
+
+3. Frontend Hooks (packages/nextjs/hooks)
+
+   useMarketData: This is a unified React-Query hook for all market filtering (Active, Pending, Trending).
+   useMarketPriceHistory: Reconstructs price curves from PriceAction event logs.
+   useCalculateSellPayout: Mirrors Solidity math in TypeScript using Decimal.js to prevent slippage reverts.
+   useUserActivePositions: Batch-fetches user portfolio data using Multicall3.
+
+## 📈 Math & Mechanics
+
+LMSR Cost Function
+The contract determines the price based on the current "weight" of the pools:
+Where
+is the initial liquidity provided at market creation.
+Profit & Loss (P&L)
+The UI displays two distinct metrics:
+
+1.  Potential Profit:
+    . (What you win if correct).
+2.  Unrealized P&L:
+    . (What you get if you exit immediately via the AMM).
 
 To get started with Scaffold-ETH 2, follow the steps below:
 
@@ -68,7 +95,6 @@ Run smart contract test with `yarn foundry:test`
 - Edit your smart contracts in `packages/foundry/contracts`
 - Edit your frontend homepage at `packages/nextjs/app/page.tsx`. For guidance on [routing](https://nextjs.org/docs/app/building-your-application/routing/defining-routes) and configuring [pages/layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts) checkout the Next.js documentation.
 - Edit your deployment scripts in `packages/foundry/script`
-
 
 ## Documentation
 
