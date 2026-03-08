@@ -13,6 +13,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { formatEther } from "viem";
 import { Badge } from "~~/components/ui/badge";
 import useMarketStats from "~~/hooks/useMarketStats";
 import { CATEGORIES, formatPrice } from "~~/lib/markets";
@@ -39,11 +40,11 @@ const OverviewTab = ({ markets }: TProps) => {
 
   const volumeOverTime = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
-    const totalVolume = Number(activeMarkets?.reduce((s, m) => s + (m.yesShares + m.noShares), 0n));
+    const totalVolume = activeMarkets?.reduce((s, m) => s + (m.yesShares + m.noShares), 0n);
     d.setDate(d.getDate() - (6 - i));
     return {
       day: d.toLocaleDateString("en-US", { weekday: "short" }),
-      volume: Math.round(totalVolume * (0.1 + Math.random() * 0.05)),
+      volume: totalVolume ? Math.round(parseFloat(formatEther(totalVolume)) * nativeCurrencyPrice) : 0,
     };
   });
 

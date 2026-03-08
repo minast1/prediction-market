@@ -14,6 +14,7 @@ import { Spinner } from "~~/components/ui/spinner";
 import { useScaffoldContract, useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { useMarketPriceHistory } from "~~/hooks/useMarketPriceHistory";
 import { CATEGORIES, calculatePotentialPayout, formatPrice, timeLeftLabel } from "~~/lib/markets";
+import { useGlobalState } from "~~/services/store/store";
 
 export default function MarketDetailPage({ params }: { params: Promise<{ marketId: string }> }) {
   const { marketId } = use(params);
@@ -32,6 +33,9 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
     contractInfo?.abi,
     nativeCurrencyPrice,
   );
+
+  const setcorrectPredictions = useGlobalState(state => state.setCorrectPredictions);
+  const correctPredictions = useGlobalState(state => state.correctPredictions);
 
   const { writeContractAsync: writeAsync, isMining } = useScaffoldWriteContract({
     contractName: "PredictionMarket",
@@ -74,6 +78,7 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
       {
         onBlockConfirmation: () => {
           setIsSubmitting(false);
+          setcorrectPredictions(correctPredictions + 1);
         },
       },
     );

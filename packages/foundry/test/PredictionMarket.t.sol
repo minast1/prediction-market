@@ -448,6 +448,19 @@ contract PredictionMarketTest is Test {
         market.settleMarketManually(marketId, PredictionMarket.Outcome.Yes);
     }
 
+    function testCannotSettleOpenMarket() public {
+        uint256 marketId = _createMarket();
+        PredictionMarket.Market memory m = market.getMarketInfo(marketId);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PredictionMarket.MarketNotClosed.selector,
+                block.timestamp,
+                m.marketClose
+            )
+        );
+        market.settleMarket(marketId, PredictionMarket.Outcome.Yes, 0);
+    }
+
     // // ================================================================
     // //                         CLAIMS & PAYOUTS
     // // ================================================================

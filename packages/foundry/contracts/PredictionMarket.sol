@@ -388,8 +388,8 @@ contract PredictionMarket {
     ) external {
         Market storage m = markets[marketId];
 
-        // if (m.status != Status.SettlementRequested)
-        //     revert SettlementNotRequested(m.status);
+        if (m.marketClose > block.timestamp)
+            revert MarketNotClosed(block.timestamp, m.marketClose);
 
         if (m.status == Status.Settled)
             revert MarketAlreadySettled(m.settledAt);
@@ -413,6 +413,9 @@ contract PredictionMarket {
     /// @param outcome The resolved market outcome.
     function settleMarketManually(uint256 marketId, Outcome outcome) public {
         Market storage m = markets[marketId];
+        if (m.marketClose > block.timestamp)
+            revert MarketNotClosed(block.timestamp, m.marketClose);
+
         if (m.status == Status.Settled)
             revert MarketAlreadySettled(m.settledAt);
         if (outcome != Outcome.No && outcome != Outcome.Yes)

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import PortfolioPageSkeleton from "./_components/skeleton";
 import { useFetchNativeCurrencyPrice, useWatchBalance } from "@scaffold-ui/hooks";
@@ -20,20 +20,28 @@ import {
 } from "recharts";
 import { formatEther, getAddress, isAddress } from "viem";
 import { useAccount, useEnsName } from "wagmi";
-import { useNetworkColor, useTargetNetwork } from "~~/hooks/scaffold-eth";
+import { Button } from "~~/components/ui/button";
+import { Spinner } from "~~/components/ui/spinner";
+import { useNetworkColor, useScaffoldWriteContract, useTargetNetwork } from "~~/hooks/scaffold-eth";
+import useTransformedMarketData from "~~/hooks/useTransformedMarketData";
 import useUserActivePositions from "~~/hooks/useUserActivePositions";
-import { MOCK_MARKETS, MOCK_POSITIONS } from "~~/lib/markets";
+import { useGlobalState } from "~~/services/store/store";
 
 const Portfolio: NextPage = () => {
   const { address } = useAccount();
   const { data: balance } = useWatchBalance({ address });
   const { price: ethPrice } = useFetchNativeCurrencyPrice();
   const { targetNetwork } = useTargetNetwork();
+  const [isLoading, setIsLoading] = useState(false);
+  const correctPredictions = useGlobalState(state => state.correctPredictions);
+  const setcorrectPredictions = useGlobalState(state => state.setCorrectPredictions);
 
   const checkSumAddress = useMemo(() => {
     if (!address || !isAddress(address)) return undefined;
     return getAddress(address); // 🚀 Converts to Checksum format
   }, [address]);
+
+  const { activePositions, winStats, isLoading: isLoadingPositions, stats } = useUserActivePositions();
 
   const { data: ensName } = useEnsName({
     address: checkSumAddress!,
@@ -42,42 +50,57 @@ const Portfolio: NextPage = () => {
     },
     chainId: targetNetwork.id, // ENS only lives on Ethereum Mainnet
   });
-
-  const resolvedPositions = MOCK_POSITIONS.filter(p => {
-    const m = MOCK_MARKETS.find(mk => mk.id === p.marketId);
-    return m && m.resolved;
+  const { data: MOCK_MARKETS } = useTransformedMarketData();
+  const resolvedPositions = activePositions?.filter(p => {
+    const m = MOCK_MARKETS?.find(mk => BigInt(mk.id) === p.id);
+    return m && m.status === 3;
   });
-  const { activePositions, isLoading, stats } = useUserActivePositions();
+
   const resolved = activePositions.filter(pos => pos.is_resolved);
   const displayName = ensName ? ensName : `${checkSumAddress?.slice(0, 6)}...${checkSumAddress?.slice(-4)}`;
   const networkColor = useNetworkColor();
 
+  // const isClosed = (close: bigint) => {
+  //   const now = BigInt(Math.floor(Date.now() / 1000));
+  //   return now > close;
+  // };
   const totalValue = balance ? Number(formatEther(balance.value)) : 0;
   const totalPnl = stats.totalPnl ? Number(stats.totalPnl) * ethPrice : 0;
   //const totalPredictions = MOCK_POSITIONS.length;
-  const correctPredictions = MOCK_POSITIONS.filter(p => {
-    const m = MOCK_MARKETS.find(mk => mk.id === p.marketId);
-    if (!m?.resolved) return false;
-    return m.outcome === p.side;
-  }).length;
-  const incorrectPredictions = resolvedPositions.length - correctPredictions;
-  const pendingPredictions = activePositions.length;
 
   const accuracyData = [
     { name: "Correct", value: correctPredictions },
-    { name: "Incorrect", value: incorrectPredictions },
-    { name: "Pending", value: pendingPredictions },
+    { name: "Incorrect", value: winStats.wrong },
+    { name: "Pending", value: winStats.pending },
   ].filter(d => d.value > 0);
+
   const ACCURACY_COLORS = ["hsl(152, 60%, 48%)", "hsl(0, 72%, 55%)", "hsl(215, 12%, 55%)"];
-  const pnlData = MOCK_POSITIONS.map(p => ({
-    name: p.marketTitle.slice(0, 18) + "...",
-    pnl: p.pnl,
+  const pnlData = activePositions?.map(p => ({
+    name: p.question.slice(0, 18) + "...",
+    pnl: p.pnl * ethPrice,
   }));
 
   const accuracyPercent =
     resolvedPositions.length > 0 ? Math.round((correctPredictions / resolvedPositions.length) * 100) : 0;
 
-  if (isLoading) {
+  const { writeContractAsync, isMining } = useScaffoldWriteContract({ contractName: "PredictionMarket" });
+  const claimWinnings = async (id: bigint) => {
+    setIsLoading(true);
+    await writeContractAsync(
+      {
+        functionName: "claimWinnings",
+        args: [id],
+      },
+      {
+        onBlockConfirmation: () => {
+          setIsLoading(false);
+          setcorrectPredictions(correctPredictions + 1);
+        },
+      },
+    );
+  };
+
+  if (isLoadingPositions) {
     return (
       <div className="min-h-screen bg-background">
         <PortfolioPageSkeleton />
@@ -166,11 +189,11 @@ const Portfolio: NextPage = () => {
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: ACCURACY_COLORS[1] }} /> Wrong (
-                {incorrectPredictions})
+                {winStats.wrong})
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: ACCURACY_COLORS[2] }} /> Pending (
-                {pendingPredictions})
+                {winStats.pending})
               </span>
             </div>
           </div>
@@ -302,9 +325,18 @@ const Portfolio: NextPage = () => {
                           <div className="font-mono text-sm font-semibold price-up">
                             +${(Number(pos.pnl) * ethPrice).toFixed(2)}
                           </div>
-                          <button className="mt-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:brightness-110 transition-all">
-                            Claim
-                          </button>
+                          <Button
+                            onClick={() => claimWinnings(pos.id)}
+                            className="mt-1 bg-primary text-xs font-semibold text-primary-foreground hover:brightness-110 transition-all"
+                          >
+                            {isLoading || isMining ? (
+                              <>
+                                <Spinner className="h-4 w-4" /> Please Wait...{" "}
+                              </>
+                            ) : (
+                              "Claim"
+                            )}
+                          </Button>
                         </>
                       ) : (
                         <div className="font-mono text-sm text-muted-foreground">Lost</div>

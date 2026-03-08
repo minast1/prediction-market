@@ -14,6 +14,8 @@ import { ChainWithAttributes, NETWORKS_EXTRA_DATA } from "~~/utils/scaffold-eth"
 type GlobalState = {
   targetNetwork: ChainWithAttributes;
   setTargetNetwork: (newTargetNetwork: ChainWithAttributes) => void;
+  correctPredictions: number;
+  setCorrectPredictions: (correctPredictions: number) => void;
 };
 
 export const useGlobalState = create<GlobalState>(set => ({
@@ -21,5 +23,7 @@ export const useGlobalState = create<GlobalState>(set => ({
     ...scaffoldConfig.targetNetworks[0],
     ...NETWORKS_EXTRA_DATA[scaffoldConfig.targetNetworks[0].id],
   },
+  correctPredictions: 0,
+  setCorrectPredictions: (correctPredictions: number) => set(() => ({ correctPredictions })),
   setTargetNetwork: (newTargetNetwork: ChainWithAttributes) => set(() => ({ targetNetwork: newTargetNetwork })),
 }));

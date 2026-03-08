@@ -69,6 +69,7 @@ const useUserActivePositions = () => {
           staked: prediction.lastSide === 2 ? prediction.yesAmount : prediction.noAmount,
           closing: market.marketClose,
           is_resolved: market.status === 3,
+          is_open: market.marketClose < BigInt(Math.floor(Date.now() / 1000)),
           open: prediction.lastUpdated,
           current_price: currentPrice,
           market_outcome: market.outcome,
@@ -79,6 +80,25 @@ const useUserActivePositions = () => {
     }
     return formatted;
   }, [results, activeIds]);
+
+  const winStats = useMemo(() => {
+    if (!activePositions.length) return { correct: 0, wrong: 0, pending: 0 };
+    const initial = { correct: 0, wrong: 0, pending: 0 };
+    const counts = activePositions.reduce((acc, pos) => {
+      const { side, market_outcome, is_resolved } = pos;
+      // 1. Pending (Market not yet settled)
+      if (!is_resolved) {
+        acc.pending += 1;
+      }
+      //2. Settled - Check if the user was wrong
+      if (is_resolved && market_outcome !== side) {
+        acc.wrong += 1;
+      }
+      return acc;
+    }, initial);
+
+    return counts;
+  }, [activePositions]);
 
   const portfolioStats = useMemo(() => {
     if (!activePositions.length) return { totalPnl: 0n, avgRoi: 0, totalStake: 0n };
@@ -109,6 +129,7 @@ const useUserActivePositions = () => {
     activePositions,
     stats: portfolioStats,
     isLoading: isLoadingIds || isLoadingDetails,
+    winStats,
   };
 };
 
