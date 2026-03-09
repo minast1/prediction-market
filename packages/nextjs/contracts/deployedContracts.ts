@@ -961,6 +961,962 @@ const deployedContracts = {
       deployedOnBlock: 1,
     },
   },
+  84532: {
+    PredictionMarket: {
+      address: "0xcb162d013ad80dfa11cc667f806b2290029c08cd",
+      abi: [
+        {
+          type: "constructor",
+          inputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "buy",
+          inputs: [
+            {
+              name: "id",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "isYes",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          outputs: [],
+          stateMutability: "payable",
+        },
+        {
+          type: "function",
+          name: "claimWinnings",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "createMarket",
+          inputs: [
+            {
+              name: "_question",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_duration",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "_criteria",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_category",
+              type: "uint8",
+              internalType: "enum PredictionMarket.MarketCategory",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "payable",
+        },
+        {
+          type: "function",
+          name: "getAllMarkets",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "tuple[]",
+              internalType: "struct PredictionMarket.Market[]",
+              components: [
+                {
+                  name: "question",
+                  type: "string",
+                  internalType: "string",
+                },
+                {
+                  name: "marketOpen",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "marketClose",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "category",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.MarketCategory",
+                },
+                {
+                  name: "outcome",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Outcome",
+                },
+                {
+                  name: "id",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "status",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Status",
+                },
+                {
+                  name: "settledAt",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "confidenceBps",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "yesShares",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "noShares",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "criteria",
+                  type: "string",
+                  internalType: "string",
+                },
+                {
+                  name: "liquidity",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "resolutionChannel",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Channel",
+                },
+                {
+                  name: "totalParticipants",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+              ],
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getMarketCount",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getMarketInfo",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "tuple",
+              internalType: "struct PredictionMarket.Market",
+              components: [
+                {
+                  name: "question",
+                  type: "string",
+                  internalType: "string",
+                },
+                {
+                  name: "marketOpen",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "marketClose",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "category",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.MarketCategory",
+                },
+                {
+                  name: "outcome",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Outcome",
+                },
+                {
+                  name: "id",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "status",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Status",
+                },
+                {
+                  name: "settledAt",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "confidenceBps",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "yesShares",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "noShares",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "criteria",
+                  type: "string",
+                  internalType: "string",
+                },
+                {
+                  name: "liquidity",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "resolutionChannel",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Channel",
+                },
+                {
+                  name: "totalParticipants",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+              ],
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getPrediction",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "tuple",
+              internalType: "struct PredictionMarket.Prediction",
+              components: [
+                {
+                  name: "yesAmount",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "noAmount",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "lastSide",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Outcome",
+                },
+                {
+                  name: "lastUpdated",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "claimed",
+                  type: "bool",
+                  internalType: "bool",
+                },
+              ],
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getPrices",
+          inputs: [
+            {
+              name: "id",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "yesPrice",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "noPrice",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getUserActiveMarketIds",
+          inputs: [
+            {
+              name: "user",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint256[]",
+              internalType: "uint256[]",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getUserPredictions",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "user",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "tuple",
+              internalType: "struct PredictionMarket.Prediction",
+              components: [
+                {
+                  name: "yesAmount",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "noAmount",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "lastSide",
+                  type: "uint8",
+                  internalType: "enum PredictionMarket.Outcome",
+                },
+                {
+                  name: "lastUpdated",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "claimed",
+                  type: "bool",
+                  internalType: "bool",
+                },
+              ],
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "marketCount",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "markets",
+          inputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "question",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "marketOpen",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "marketClose",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "category",
+              type: "uint8",
+              internalType: "enum PredictionMarket.MarketCategory",
+            },
+            {
+              name: "outcome",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Outcome",
+            },
+            {
+              name: "id",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "status",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Status",
+            },
+            {
+              name: "settledAt",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "confidenceBps",
+              type: "uint16",
+              internalType: "uint16",
+            },
+            {
+              name: "yesShares",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "noShares",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "criteria",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "liquidity",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "resolutionChannel",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Channel",
+            },
+            {
+              name: "totalParticipants",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "sell",
+          inputs: [
+            {
+              name: "id",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "isYes",
+              type: "bool",
+              internalType: "bool",
+            },
+            {
+              name: "amount",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "minPayout",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "settleMarket",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "outcome",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Outcome",
+            },
+            {
+              name: "confidenceBps",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "settleMarketManually",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "outcome",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Outcome",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "event",
+          name: "Claimed",
+          inputs: [
+            {
+              name: "id",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "user",
+              type: "address",
+              indexed: false,
+              internalType: "address",
+            },
+            {
+              name: "payout",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "MarketCreated",
+          inputs: [
+            {
+              name: "id",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "question",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "endTime",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "PriceUpdated",
+          inputs: [
+            {
+              name: "id",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "user",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "outcome",
+              type: "bool",
+              indexed: false,
+              internalType: "bool",
+            },
+            {
+              name: "amount",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "yesPrice",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "noPrice",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "timeStamp",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "Resolved",
+          inputs: [
+            {
+              name: "id",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "outcome",
+              type: "bool",
+              indexed: false,
+              internalType: "bool",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "SettlementResponse",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "status",
+              type: "uint8",
+              indexed: true,
+              internalType: "enum PredictionMarket.Status",
+            },
+            {
+              name: "outcome",
+              type: "uint8",
+              indexed: false,
+              internalType: "enum PredictionMarket.Outcome",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "error",
+          name: "AlreadyClaimed",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "AlreadyPredicted",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "AmountZero",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "IncorrectPrediction",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InsufficientPayment",
+          inputs: [
+            {
+              name: "amt",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "InsufficientShares",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidMarket",
+          inputs: [
+            {
+              name: "marketId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "InvalidOutcome",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "ManualSettlementNotAllowed",
+          inputs: [
+            {
+              name: "current",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Status",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "MarketAlreadySettled",
+          inputs: [
+            {
+              name: "settleTs",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "MarketNotClosed",
+          inputs: [
+            {
+              name: "nowTs",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "closeTs",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "MarketNotOpen",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "MarketNotSettled",
+          inputs: [
+            {
+              name: "current",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Status",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "NoWinners",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "NotSettledYet",
+          inputs: [
+            {
+              name: "current",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Status",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "PRBMath_MulDiv18_Overflow",
+          inputs: [
+            {
+              name: "x",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "y",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "PRBMath_MulDiv_Overflow",
+          inputs: [
+            {
+              name: "x",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "y",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "denominator",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "PRBMath_UD60x18_Exp2_InputTooBig",
+          inputs: [
+            {
+              name: "x",
+              type: "uint256",
+              internalType: "UD60x18",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "PRBMath_UD60x18_Exp_InputTooBig",
+          inputs: [
+            {
+              name: "x",
+              type: "uint256",
+              internalType: "UD60x18",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "PRBMath_UD60x18_Log_InputTooSmall",
+          inputs: [
+            {
+              name: "x",
+              type: "uint256",
+              internalType: "UD60x18",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "SettlementNotRequested",
+          inputs: [
+            {
+              name: "current",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Status",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "SlippageExceeded",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "StatusNotOpen",
+          inputs: [
+            {
+              name: "current",
+              type: "uint8",
+              internalType: "enum PredictionMarket.Status",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "TransferFailed",
+          inputs: [],
+        },
+      ],
+      inheritedFunctions: {},
+      deployedOnBlock: 38654179,
+    },
+  },
   11155111: {
     PredictionMarket: {
       address: "0xeaeeb1f7a6968a5f59e6dd4fc23a12b54d6451af",

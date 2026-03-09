@@ -507,7 +507,7 @@ contract PredictionMarketTest is Test {
 
         //Fast forward and resolve market
         vm.warp(block.timestamp + 1 days + 5 minutes);
-        market.requestSettlement(marketId);
+
         market.settleMarket(marketId, PredictionMarket.Outcome.Yes, 1000);
         //uint256 profit = (stake * losingPool) / winningPool;
         uint256 balanceBefore = alice.balance;
