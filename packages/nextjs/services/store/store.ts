@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 import scaffoldConfig from "~~/scaffold.config";
 import { ChainWithAttributes, NETWORKS_EXTRA_DATA } from "~~/utils/scaffold-eth";
 
@@ -18,12 +19,24 @@ type GlobalState = {
   setCorrectPredictions: (correctPredictions: number) => void;
 };
 
-export const useGlobalState = create<GlobalState>(set => ({
-  targetNetwork: {
-    ...scaffoldConfig.targetNetworks[0],
-    ...NETWORKS_EXTRA_DATA[scaffoldConfig.targetNetworks[0].id],
-  },
-  correctPredictions: 0,
-  setCorrectPredictions: (correctPredictions: number) => set(() => ({ correctPredictions })),
-  setTargetNetwork: (newTargetNetwork: ChainWithAttributes) => set(() => ({ targetNetwork: newTargetNetwork })),
-}));
+export const useGlobalState = create<GlobalState>()(
+  persist(
+    set => ({
+      targetNetwork: {
+        ...scaffoldConfig.targetNetworks[0],
+        ...NETWORKS_EXTRA_DATA[scaffoldConfig.targetNetworks[0].id],
+      },
+      correctPredictions: 0,
+      setCorrectPredictions: (correctPredictions: number) => set(() => ({ correctPredictions })),
+      setTargetNetwork: (newTargetNetwork: ChainWithAttributes) => set(() => ({ targetNetwork: newTargetNetwork })),
+    }),
+    {
+      storage: createJSONStorage(() => localStorage),
+      name: "win-accuracy",
+      partialize: state => ({
+        //targetNetwork: state.targetNetwork,
+        correctPredictions: state.correctPredictions,
+      }),
+    },
+  ),
+);

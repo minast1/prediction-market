@@ -43,10 +43,7 @@ contract PredictionMarket {
         Status indexed status,
         Outcome outcome
     );
-    /// @notice Emitted when a settlement is requested for a market.
-    /// @param marketId The ID of the market to settle.
-    /// @param question The market's question string.
-    event SettlementRequested(uint256 indexed marketId, string question);
+
     // ===========================
     // ======== ENUMS ============
     // ===========================
@@ -362,19 +359,6 @@ contract PredictionMarket {
             nP,
             block.timestamp
         );
-    }
-
-    /// @notice Request (CRE) to settle a market.
-    /// @dev Emits a SettlementRequested event for monitoring.
-    /// @param marketId The ID of the market to settle.
-    function requestSettlement(uint256 marketId) public {
-        Market storage m = markets[marketId];
-        if (m.status != Status.Open) revert StatusNotOpen(m.status);
-        // if (m.marketClose > block.timestamp)
-        //     revert MarketNotClosed(block.timestamp, m.marketClose);  ///REVIVE THIS AFTER TESTING
-
-        m.status = Status.SettlementRequested;
-        emit SettlementRequested(marketId, m.question);
     }
 
     /// @param marketId The ID of the market being settled.

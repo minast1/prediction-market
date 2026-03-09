@@ -522,19 +522,6 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "requestSettlement",
-          inputs: [
-            {
-              name: "marketId",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
           name: "sell",
           inputs: [
             {
@@ -716,25 +703,6 @@ const deployedContracts = {
               type: "bool",
               indexed: false,
               internalType: "bool",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "SettlementRequested",
-          inputs: [
-            {
-              name: "marketId",
-              type: "uint256",
-              indexed: true,
-              internalType: "uint256",
-            },
-            {
-              name: "question",
-              type: "string",
-              indexed: false,
-              internalType: "string",
             },
           ],
           anonymous: false,
@@ -1510,19 +1478,6 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "requestSettlement",
-          inputs: [
-            {
-              name: "marketId",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
           name: "sell",
           inputs: [
             {
@@ -1704,25 +1659,6 @@ const deployedContracts = {
               type: "bool",
               indexed: false,
               internalType: "bool",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "SettlementRequested",
-          inputs: [
-            {
-              name: "marketId",
-              type: "uint256",
-              indexed: true,
-              internalType: "uint256",
-            },
-            {
-              name: "question",
-              type: "string",
-              indexed: false,
-              internalType: "string",
             },
           ],
           anonymous: false,

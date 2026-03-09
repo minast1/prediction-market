@@ -23,6 +23,7 @@ import { useAccount, useEnsName } from "wagmi";
 import { Button } from "~~/components/ui/button";
 import { Spinner } from "~~/components/ui/spinner";
 import { useNetworkColor, useScaffoldWriteContract, useTargetNetwork } from "~~/hooks/scaffold-eth";
+import useMarketStats from "~~/hooks/useMarketStats";
 import useTransformedMarketData from "~~/hooks/useTransformedMarketData";
 import useUserActivePositions from "~~/hooks/useUserActivePositions";
 import { useGlobalState } from "~~/services/store/store";
@@ -51,10 +52,7 @@ const Portfolio: NextPage = () => {
     chainId: targetNetwork.id, // ENS only lives on Ethereum Mainnet
   });
   const { data: MOCK_MARKETS } = useTransformedMarketData();
-  const resolvedPositions = activePositions?.filter(p => {
-    const m = MOCK_MARKETS?.find(mk => BigInt(mk.id) === p.id);
-    return m && m.status === 3;
-  });
+  const { resolvedMarkets: resolvedPositions } = useMarketStats(MOCK_MARKETS);
 
   const resolved = activePositions.filter(pos => pos.is_resolved);
   const displayName = ensName ? ensName : `${checkSumAddress?.slice(0, 6)}...${checkSumAddress?.slice(-4)}`;
@@ -81,7 +79,9 @@ const Portfolio: NextPage = () => {
   }));
 
   const accuracyPercent =
-    resolvedPositions.length > 0 ? Math.round((correctPredictions / resolvedPositions.length) * 100) : 0;
+    resolvedPositions && resolvedPositions.length > 0
+      ? Math.round((correctPredictions / resolvedPositions.length) * 100)
+      : 0;
 
   const { writeContractAsync, isMining } = useScaffoldWriteContract({ contractName: "PredictionMarket" });
   const claimWinnings = async (id: bigint) => {
