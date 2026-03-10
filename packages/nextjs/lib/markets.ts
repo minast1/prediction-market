@@ -38,208 +38,76 @@ export const CATEGORIES = [
 
 export type Category = (typeof CATEGORIES)[number];
 
-function generatePriceHistory(finalPrice: number): { time: string; yes: number }[] {
-  const points: { time: string; yes: number }[] = [];
-  let price = 0.5;
-  for (let i = 30; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    price += (Math.random() - 0.48) * 0.08;
-    price = Math.max(0.02, Math.min(0.98, price));
-    if (i === 0) price = finalPrice;
-    points.push({
-      time: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-      yes: Math.round(price * 100) / 100,
-    });
-  }
-  return points;
-}
-
 export const MOCK_MARKETS: any[] = [
   {
-    id: "1",
-    title: "Will Bitcoin exceed $150K by end of 2026?",
-    category: "Crypto",
-    volume: 12500000,
-    liquidity: 3200000,
-    endDate: "2026-12-31",
-    yesPrice: 0.62,
-    noPrice: 0.38,
-    priceHistory: generatePriceHistory(0.62),
-    description:
-      "This market resolves YES if the price of Bitcoin (BTC) exceeds $150,000 USD on any major exchange before December 31, 2026 11:59 PM ET.",
-    resolved: false,
-    trending: true,
-  },
-  {
-    id: "2",
-    title: "Will AI pass the Turing Test by 2027?",
-    category: "Tech",
-    volume: 8900000,
-    liquidity: 2100000,
-    endDate: "2027-01-01",
-    yesPrice: 0.45,
-    noPrice: 0.55,
-    priceHistory: generatePriceHistory(0.45),
-    description:
-      "Resolves YES if a generally accepted independent evaluation confirms an AI system passes the Turing Test.",
-    resolved: false,
-    trending: true,
-  },
-  {
-    id: "3",
-    title: "US Presidential Election 2028 - Democratic nominee?",
-    category: "Politics",
-    volume: 24000000,
-    liquidity: 8500000,
-    endDate: "2028-08-01",
-    yesPrice: 0.33,
-    noPrice: 0.67,
-    priceHistory: generatePriceHistory(0.33),
-    description:
-      "This market resolves based on the official Democratic Party nominee for the 2028 presidential election.",
-    resolved: false,
-  },
-  {
-    id: "4",
-    title: "Will SpaceX Starship reach orbit in Q1 2026?",
+    title: "Will SpaceX successfully land a Starship on Mars by 2027?",
     category: "Science",
-    volume: 5600000,
-    liquidity: 1400000,
-    endDate: "2026-03-31",
-    yesPrice: 0.78,
-    noPrice: 0.22,
-    priceHistory: generatePriceHistory(0.78),
-    description: "s",
-    resolved: false,
-    isNew: true,
+    endDate: "2026-06-15",
+    description:
+      "Resolves YES if SpaceX confirms a successful touchdown of any Starship vehicle on the Martian surface before Jan 1, 2027.",
   },
   {
-    id: "5",
-    title: "Super Bowl LXII Winner - Chiefs?",
-    category: "Sports",
-    volume: 18000000,
-    liquidity: 6200000,
-    endDate: "2026-02-08",
-    yesPrice: 0.28,
-    noPrice: 0.72,
-    priceHistory: generatePriceHistory(0.28),
-    description: "Resolves YES if the Kansas City Chiefs win Super Bowl LXII.",
-    resolved: true,
-    outcome: "no",
-  },
-  {
-    id: "6",
-    title: "Ethereum ETF net inflows exceed $10B in 2026?",
+    title: "Will Bitcoin's market cap exceed $3 Trillion by year-end 2026?",
     category: "Crypto",
-    volume: 7800000,
-    liquidity: 2800000,
     endDate: "2026-12-31",
-    yesPrice: 0.54,
-    noPrice: 0.46,
-    priceHistory: generatePriceHistory(0.54),
     description:
-      "Resolves YES if cumulative net inflows into all US-listed spot Ethereum ETFs exceed $10 billion in calendar year 2026.",
-    resolved: false,
+      "Resolves YES if CoinGecko or CoinMarketCap reports a BTC market capitalization above $3T at any point before the end of 2026.",
   },
   {
-    id: "7",
-    title: "Fed rate cuts total ≥100bps in 2026?",
+    title: "Will an African nation reach the FIFA World Cup Final in 2026?",
+    category: "Sports",
+    endDate: "2026-07-10",
+    description:
+      "Resolves YES if any team from the CAF confederation competes in the final match of the 2026 FIFA World Cup.",
+  },
+  {
+    title: "Will the Digital Euro be officially launched by July 2026?",
     category: "Economics",
-    volume: 15200000,
-    liquidity: 5100000,
-    endDate: "2026-12-31",
-    yesPrice: 0.41,
-    noPrice: 0.59,
-    priceHistory: generatePriceHistory(0.41),
+    endDate: "2026-07-01",
     description:
-      "Resolves YES if the Federal Reserve cuts the federal funds rate by a cumulative 100 basis points or more during 2026.",
-    resolved: false,
-    trending: true,
+      "Resolves YES if the European Central Bank announces the official public rollout of the Digital Euro for retail use.",
   },
   {
-    id: "8",
-    title: "Will a Marvel movie gross $2B+ in 2026?",
+    title: "Will a non-English language film win Best Picture at the 2026 Oscars?",
     category: "Entertainment",
-    volume: 3200000,
-    liquidity: 900000,
-    endDate: "2026-12-31",
-    yesPrice: 0.18,
-    noPrice: 0.82,
-    priceHistory: generatePriceHistory(0.18),
-    description: "Resolves YES if any Marvel Cinematic Universe film grosses over $2 billion worldwide in 2026.",
-    resolved: false,
-    isNew: true,
-  },
-  {
-    id: "9",
-    title: "Tesla delivers 2M+ vehicles in 2026?",
-    category: "Tech",
-    volume: 9400000,
-    liquidity: 3100000,
-    endDate: "2026-12-31",
-    yesPrice: 0.67,
-    noPrice: 0.33,
-    priceHistory: generatePriceHistory(0.67),
+    endDate: "2026-03-15",
     description:
-      "Resolves YES if Tesla Inc. reports total vehicle deliveries of 2 million or more for the calendar year 2026.",
-    resolved: false,
+      "Resolves YES if the Academy of Motion Picture Arts and Sciences awards 'Best Picture' to a film primarily in a language other than English.",
   },
   {
-    id: "10",
-    title: "US GDP growth > 3% in 2026?",
-    category: "Economics",
-    volume: 6700000,
-    liquidity: 2200000,
-    endDate: "2027-02-01",
-    yesPrice: 0.35,
-    noPrice: 0.65,
-    priceHistory: generatePriceHistory(0.35),
-    description: "Resolves YES if the final BEA estimate of US real GDP growth for 2026 exceeds 3.0%.",
-    resolved: false,
-  },
-];
-
-export const MOCK_POSITIONS: Position[] = [
-  {
-    marketId: "1",
-    marketTitle: "Will Bitcoin exceed $150K by end of 2026?",
-    side: "yes",
-    shares: 500,
-    avgPrice: 0.45,
-    currentPrice: 0.62,
-    pnl: 85,
-    pnlPercent: 37.78,
+    title: "Will 2026 be recorded as the hottest year in history?",
+    category: "Weather",
+    endDate: "2027-01-20",
+    description:
+      "Resolves YES if NASA or NOAA data confirms 2026 global surface temperatures were the highest on record.",
   },
   {
-    marketId: "4",
-    marketTitle: "Will SpaceX Starship reach orbit in Q1 2026?",
-    side: "yes",
-    shares: 200,
-    avgPrice: 0.6,
-    currentPrice: 0.78,
-    pnl: 36,
-    pnlPercent: 30.0,
+    title: "Will a private fusion company achieve 'Net Energy Gain' by 2027?",
+    category: "Science",
+    endDate: "2026-11-15",
+    description:
+      "Resolves YES if a peer-reviewed report confirms a private company produced more energy from fusion than was used to trigger the reaction.",
   },
   {
-    marketId: "7",
-    marketTitle: "Fed rate cuts total ≥100bps in 2026?",
-    side: "no",
-    shares: 300,
-    avgPrice: 0.5,
-    currentPrice: 0.59,
-    pnl: 27,
-    pnlPercent: 18.0,
+    title: "Will the Democratic Party retain control of the US Senate in the 2026 Midterms?",
+    category: "Politics",
+    endDate: "2026-11-05",
+    description:
+      "Resolves YES if, following the 2026 elections, the Democratic caucus holds at least 50 seats plus the tie-breaking vote.",
   },
   {
-    marketId: "5",
-    marketTitle: "Super Bowl LXII Winner - Chiefs?",
-    side: "no",
-    shares: 150,
-    avgPrice: 0.55,
-    currentPrice: 1.0,
-    pnl: 67.5,
-    pnlPercent: 81.82,
+    title: "Will Neuralink receive FDA approval for wide-scale consumer use by 2027?",
+    category: "Tech",
+    endDate: "2026-09-30",
+    description:
+      "Resolves YES if the FDA grants a de novo request or premarket approval for Neuralink's brain-computer interface for non-experimental use.",
+  },
+  {
+    title: "Will Ethereum staking rewards stay above 3% APR through 2026?",
+    category: "Crypto",
+    endDate: "2026-12-31",
+    description:
+      "Resolves YES if the average annual percentage rate for ETH stakers remains ≥ 3.0% as reported by Beaconcha.in throughout the calendar year.",
   },
 ];
 

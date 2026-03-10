@@ -29,7 +29,7 @@ export default function MarketDetailPage({ params }: { params: Promise<{ marketI
   const { data: contractInfo } = useScaffoldContract({ contractName: "PredictionMarket" });
   const { chartData, tradeHistory } = useMarketPriceHistory(
     market?.id,
-    contractInfo?.address,
+    contractInfo?.address as `0x${string}`,
     contractInfo?.abi,
     nativeCurrencyPrice,
   );
