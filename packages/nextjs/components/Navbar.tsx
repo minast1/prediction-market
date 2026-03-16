@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui
 import { BarChart3, Briefcase, Menu, Search, TrendingUp } from "lucide-react";
 import { hardhat } from "viem/chains";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth";
+import useMedia from "~~/hooks/useMedia";
 
 const navItems = [
   { to: "/", label: "Home", icon: TrendingUp },
@@ -19,6 +20,7 @@ const Navbar = () => {
   const { targetNetwork } = useTargetNetwork();
   const isLocalNetwork = targetNetwork.id === hardhat.id;
   const [open, setOpen] = useState(false);
+  const { isMobile } = useMedia();
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl">
       <div className="container flex h-14 items-center justify-between">
@@ -49,7 +51,8 @@ const Navbar = () => {
         </nav>
         <div className="flex items-center gap-3">
           <RainbowKitCustomConnectButton />
-          {isLocalNetwork ? <FaucetButton /> : <TestnetFaucetButton />}
+          {isLocalNetwork && !isMobile && <FaucetButton />}
+          {!isLocalNetwork && !isMobile && <TestnetFaucetButton />}
           {/* Mobile menu */}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
@@ -57,14 +60,14 @@ const Navbar = () => {
                 <Menu className="h-5 w-5" />
               </button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-64">
+            <SheetContent side="right" className="w-64" showCloseButton={false}>
               <SheetHeader>
                 <SheetTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-primary" />
                   PredictX
                 </SheetTitle>
               </SheetHeader>
-              <nav className="mt-6 flex flex-col gap-1">
+              <nav className="mt-6 flex flex-col gap-1 px-5">
                 {navItems.map(item => {
                   const active = pathname === item.to || (item.to !== "/" && pathname.startsWith(item.to));
                   return (
@@ -83,6 +86,7 @@ const Navbar = () => {
                     </Link>
                   );
                 })}
+                <TestnetFaucetButton />
               </nav>
             </SheetContent>
           </Sheet>
