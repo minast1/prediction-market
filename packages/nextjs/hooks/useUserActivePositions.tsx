@@ -118,7 +118,7 @@ const useUserActivePositions = () => {
     address: predictionMarket?.address,
     abi: predictionMarket?.abi,
     eventName: "PriceUpdated",
-    fromBlock: 0n,
+    //fromBlock: 0n,
     //fromBlock: BigInt(process.env.NEXT_PUBLIC_DEPLOYMENT_BLOCK || 0),
     onLogs: log => {
       console.log(log);

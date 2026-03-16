@@ -39,34 +39,34 @@ export const CATEGORIES = [
 export type Category = (typeof CATEGORIES)[number];
 
 export const MOCK_MARKETS: any[] = [
-  {
-    title: "Will SpaceX successfully land a Starship on Mars by 2027?",
-    category: "Science",
-    endDate: "2026-06-15",
-    description:
-      "Resolves YES if SpaceX confirms a successful touchdown of any Starship vehicle on the Martian surface before Jan 1, 2027.",
-  },
-  {
-    title: "Will Bitcoin's market cap exceed $3 Trillion by year-end 2026?",
-    category: "Crypto",
-    endDate: "2026-12-31",
-    description:
-      "Resolves YES if CoinGecko or CoinMarketCap reports a BTC market capitalization above $3T at any point before the end of 2026.",
-  },
-  {
-    title: "Will an African nation reach the FIFA World Cup Final in 2026?",
-    category: "Sports",
-    endDate: "2026-07-10",
-    description:
-      "Resolves YES if any team from the CAF confederation competes in the final match of the 2026 FIFA World Cup.",
-  },
-  {
-    title: "Will the Digital Euro be officially launched by July 2026?",
-    category: "Economics",
-    endDate: "2026-07-01",
-    description:
-      "Resolves YES if the European Central Bank announces the official public rollout of the Digital Euro for retail use.",
-  },
+  // {
+  //   title: "Will SpaceX successfully land a Starship on Mars by 2027?",
+  //   category: "Science",
+  //   endDate: "2026-06-15",
+  //   description:
+  //     "Resolves YES if SpaceX confirms a successful touchdown of any Starship vehicle on the Martian surface before Jan 1, 2027.",
+  // },
+  // {
+  //   title: "Will Bitcoin's market cap exceed $3 Trillion by year-end 2026?",
+  //   category: "Crypto",
+  //   endDate: "2026-12-31",
+  //   description:
+  //     "Resolves YES if CoinGecko or CoinMarketCap reports a BTC market capitalization above $3T at any point before the end of 2026.",
+  // },
+  // {
+  //   title: "Will an African nation reach the FIFA World Cup Final in 2026?",
+  //   category: "Sports",
+  //   endDate: "2026-07-10",
+  //   description:
+  //     "Resolves YES if any team from the CAF confederation competes in the final match of the 2026 FIFA World Cup.",
+  // },
+  // {
+  //   title: "Will the Digital Euro be officially launched by July 2026?",
+  //   category: "Economics",
+  //   endDate: "2026-07-01",
+  //   description:
+  //     "Resolves YES if the European Central Bank announces the official public rollout of the Digital Euro for retail use.",
+  // },
   {
     title: "Will a non-English language film win Best Picture at the 2026 Oscars?",
     category: "Entertainment",
@@ -88,13 +88,13 @@ export const MOCK_MARKETS: any[] = [
     description:
       "Resolves YES if a peer-reviewed report confirms a private company produced more energy from fusion than was used to trigger the reaction.",
   },
-  {
-    title: "Will the Democratic Party retain control of the US Senate in the 2026 Midterms?",
-    category: "Politics",
-    endDate: "2026-11-05",
-    description:
-      "Resolves YES if, following the 2026 elections, the Democratic caucus holds at least 50 seats plus the tie-breaking vote.",
-  },
+  // {
+  //   title: "Will the Democratic Party retain control of the US Senate in the 2026 Midterms?",
+  //   category: "Politics",
+  //   endDate: "2026-11-05",
+  //   description:
+  //     "Resolves YES if, following the 2026 elections, the Democratic caucus holds at least 50 seats plus the tie-breaking vote.",
+  // },
   {
     title: "Will Neuralink receive FDA approval for wide-scale consumer use by 2027?",
     category: "Tech",
